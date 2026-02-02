@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import { motion } from "motion/react";
 import FormInput from "@/components/FormInput";
 import AdmissionCheck from "@/components/AdmissionCheck";
@@ -35,6 +35,53 @@ const AdmissionFormPage = () => {
     admissionNumber: string;
     program: string;
   } | null>(null);
+
+  // Bus Service State
+  const [buses, setBuses] = useState<any[]>([]);
+  const [busStops, setBusStops] = useState<any[]>([]);
+  const [loadingBuses, setLoadingBuses] = useState(false);
+  const [loadingStops, setLoadingStops] = useState(false);
+
+  useEffect(() => {
+    if (formValues.busService) {
+      setLoadingBuses(true);
+      fetch("/api/bus/fetchbus")
+        .then((res) => res.json())
+        .then((data) => {
+          if (Array.isArray(data)) {
+            setBuses(data);
+          } else if (data && Array.isArray(data.buses)) {
+            setBuses(data.buses);
+          } else {
+            console.error("Invalid bus data format", data);
+            setBuses([]);
+          }
+          setLoadingBuses(false);
+        })
+        .catch((err) => {
+          console.error("Failed to fetch buses", err);
+          setLoadingBuses(false);
+        });
+    }
+  }, [formValues.busService]);
+
+  useEffect(() => {
+    if (formValues.busId) {
+      setLoadingStops(true);
+      fetch(`/api/bus/busDetails/${formValues.busId}`)
+        .then((res) => res.json())
+        .then((data) => {
+          setBusStops(data.stops || []);
+          setLoadingStops(false);
+        })
+        .catch((err) => {
+          console.error("Failed to fetch bus stops", err);
+          setLoadingStops(false);
+        });
+    } else {
+      setBusStops([]);
+    }
+  }, [formValues.busId]);
 
   const handleAdmissionsReady = useCallback((programs: string[]) => {
     setOpenPrograms(programs);
@@ -100,6 +147,16 @@ const AdmissionFormPage = () => {
         }
       }
     });
+
+    // Bus Service Validation
+    if (formValues.busService) {
+      if (!formValues.busId) {
+        errors.busId = "Please select a bus route";
+      }
+      if (!formValues.busStopId) {
+        errors.busStopId = "Please select a bus stop";
+      }
+    }
 
     setValidationErrors(errors);
     return Object.keys(errors).length === 0;
@@ -263,9 +320,9 @@ const AdmissionFormPage = () => {
         [40, 41, 42, 43, 44, 45, 46, 47].includes(f.id)
       ),
       education: fields.filter((f) => f.id >= 60 && f.id < 90),
-      entrance: fields.filter((f) => f.id >= 90 && f.id < 160),
+      entrance: fields.filter((f) => f.id >= 90 && f.id < 150),
       bank: fields.filter((f) => [150, 151, 152, 153].includes(f.id)),
-      additional: fields.filter((f) => [160, 161].includes(f.id)),
+      additional: fields.filter((f) => [160, 161, 162, 163].includes(f.id)), // UPDATED to include 162, 163
     };
 
     return (
@@ -447,16 +504,228 @@ const AdmissionFormPage = () => {
               )}
 
               {/* Additional Information Section */}
-              {/* {groupedFields.additional.length > 0 && (
-                <FormSection
-                  title="Additional Information"
-                  description="Any other relevant details for your application"
-                  fields={groupedFields.additional}
-                  formValues={formValues}
-                  onChange={handleInputChange}
-                  validationErrors={validationErrors}
-                />
-              )} */}
+              {groupedFields.additional.length > 0 && (
+                <motion.div
+                  className="mb-10 last:mb-0"
+                  initial={{ opacity: 0, y: 15 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <div className="mb-6">
+                    <h2 className="text-lg font-medium text-gray-900 mb-1">
+                      Additional Information
+                    </h2>
+                    <p className="text-sm text-gray-600">
+                      Any other relevant details for your application
+                    </p>
+                  </div>
+
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+                    {/* Regular fields (textarea, etc.) */}
+                    {groupedFields.additional
+                      .filter(
+                        (f) =>
+                          ![
+                            "hostelService",
+                            "busService",
+                            "applyForFeeConcession",
+                          ].includes(f.name)
+                      )
+                      .map((field) => (
+                        <div
+                          key={field.id}
+                          className={
+                            field.type === "textarea" ? "lg:col-span-2" : ""
+                          }
+                        >
+                          <FormInput
+                            {...field}
+                            onChange={handleInputChange}
+                            value={formValues[field.name] || ""}
+                          />
+                        </div>
+                      ))}
+
+                    {/* Fee Concession Checkbox */}
+                    {groupedFields.additional.some(
+                      (f) => f.name === "applyForFeeConcession"
+                    ) && (
+                      <div className="lg:col-span-2">
+                        <div className="flex items-start gap-3 p-4 bg-blue-50 rounded-lg border border-blue-200 transition-all duration-200 hover:border-blue-300 hover:shadow-sm">
+                          <input
+                            type="checkbox"
+                            id="applyForFeeConcession"
+                            name="applyForFeeConcession"
+                            checked={Boolean(formValues.applyForFeeConcession)}
+                            onChange={handleInputChange}
+                            className="mt-1 h-4 w-4 text-blue-600 focus:ring-2 focus:ring-blue-500 border-gray-300 rounded cursor-pointer"
+                          />
+                          <label
+                            htmlFor="applyForFeeConcession"
+                            className="text-sm text-gray-700 cursor-pointer flex-1 select-none"
+                          >
+                            <span className="font-semibold text-gray-900">
+                              Apply for Fee Concession
+                            </span>
+                            <p className="text-xs text-gray-600 mt-1">
+                              Check this box if you wish to apply for fee
+                              concession based on income certificate or other
+                              eligible criteria.
+                            </p>
+                          </label>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Hostel Service Checkbox */}
+                    {groupedFields.additional.some(
+                      (f) => f.name === "hostelService"
+                    ) && (
+                      <div className="lg:col-span-2">
+                        <div className="flex items-start gap-3 p-4 bg-blue-50 rounded-lg border border-blue-200 transition-all duration-200 hover:border-blue-300 hover:shadow-sm">
+                          <input
+                            type="checkbox"
+                            id="hostelService"
+                            name="hostelService"
+                            checked={Boolean(formValues.hostelService)}
+                            onChange={handleInputChange}
+                            className="mt-1 h-4 w-4 text-blue-600 focus:ring-2 focus:ring-blue-500 border-gray-300 rounded cursor-pointer"
+                          />
+                          <label
+                            htmlFor="hostelService"
+                            className="text-sm text-gray-700 cursor-pointer flex-1 select-none"
+                          >
+                            <span className="font-semibold text-gray-900">
+                              Avail Hostel Service
+                            </span>
+                            <p className="text-xs text-gray-600 mt-1">
+                              Check this box if you wish to avail hostel
+                              accommodation provided by the college. Hostel
+                              facilities include furnished rooms, mess services,
+                              and 24/7 security.
+                            </p>
+                          </label>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Bus Service Checkbox */}
+                    {groupedFields.additional.some(
+                      (f) => f.name === "busService"
+                    ) && (
+                      <div className="lg:col-span-2 space-y-4">
+                        <div className="flex items-start gap-3 p-4 bg-blue-50 rounded-lg border border-blue-200 transition-all duration-200 hover:border-blue-300 hover:shadow-sm">
+                          <input
+                            type="checkbox"
+                            id="busService"
+                            name="busService"
+                            checked={Boolean(formValues.busService)}
+                            onChange={handleInputChange}
+                            className="mt-1 h-4 w-4 text-blue-600 focus:ring-2 focus:ring-blue-500 border-gray-300 rounded cursor-pointer"
+                          />
+                          <label
+                            htmlFor="busService"
+                            className="text-sm text-gray-700 cursor-pointer flex-1 select-none"
+                          >
+                            <span className="font-semibold text-gray-900">
+                              Avail Bus Service
+                            </span>
+                            <p className="text-xs text-gray-600 mt-1">
+                              Check this box if you wish to avail the college
+                              bus transportation service. Multiple routes
+                              available covering major areas of the city.
+                            </p>
+                          </label>
+                        </div>
+
+                        {/* Bus Selection Dropdowns */}
+                        {Boolean(formValues.busService) && (
+                          <motion.div
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: "auto" }}
+                            className="grid grid-cols-1 md:grid-cols-2 gap-4 pl-4 border-l-2 border-blue-200"
+                          >
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">
+                                Select Bus Route{" "}
+                                <span className="text-red-500">*</span>
+                              </label>
+                              <select
+                                name="busId"
+                                value={(formValues.busId as string) || ""}
+                                onChange={handleInputChange}
+                                className={`w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2 border ${
+                                  validationErrors.busId ? "border-red-500" : ""
+                                }`}
+                                required
+                              >
+                                <option value="">Select a bus route</option>
+                                {loadingBuses ? (
+                                  <option disabled>Loading buses...</option>
+                                ) : (
+                                  buses.map((bus) => (
+                                    <option
+                                      key={bus._id || bus.id}
+                                      value={bus._id || bus.id}
+                                    >
+                                      {bus.busNumber} - {bus.routeName}
+                                    </option>
+                                  ))
+                                )}
+                              </select>
+                              {validationErrors.busId && (
+                                <p className="mt-1 text-xs text-red-500 flex items-center gap-1">
+                                  <FiAlertCircle size={12} />
+                                  {validationErrors.busId}
+                                </p>
+                              )}
+                            </div>
+
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">
+                                Select Bus Stop{" "}
+                                <span className="text-red-500">*</span>
+                              </label>
+                              <select
+                                name="busStopId"
+                                value={(formValues.busStopId as string) || ""}
+                                onChange={handleInputChange}
+                                className={`w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2 border ${
+                                  validationErrors.busStopId
+                                    ? "border-red-500"
+                                    : ""
+                                }`}
+                                required
+                                disabled={!formValues.busId}
+                              >
+                                <option value="">Select a bus stop</option>
+                                {loadingStops ? (
+                                  <option disabled>Loading stops...</option>
+                                ) : (
+                                  busStops.map((stop) => (
+                                    <option
+                                      key={stop._id || stop.id}
+                                      value={stop._id || stop.id}
+                                    >
+                                      {stop.stopName}
+                                    </option>
+                                  ))
+                                )}
+                              </select>
+                              {validationErrors.busStopId && (
+                                <p className="mt-1 text-xs text-red-500 flex items-center gap-1">
+                                  <FiAlertCircle size={12} />
+                                  {validationErrors.busStopId}
+                                </p>
+                              )}
+                            </div>
+                          </motion.div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </motion.div>
+              )}
             </div>
 
             {/* Submit Buttons */}

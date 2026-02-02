@@ -8,6 +8,7 @@ interface FormInputProps extends FormFieldConfig {
       HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
     >
   ) => void;
+  props?: FormFieldConfig;
   value?: string | number | boolean;
 }
 

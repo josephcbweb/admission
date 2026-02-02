@@ -299,6 +299,7 @@ export const educationInfoFieldsCommon: FormFieldConfig[] = [
     name: "qualifyingExam",
     type: "select",
     label: "Qualifying Exam",
+
     required: true,
     errorMessage: "Qualifying exam is required.",
     info: "The final exam of your previous level of education.",
@@ -741,21 +742,36 @@ export const bankInfoFields: FormFieldConfig[] = [
 export const additionalInfoFields: FormFieldConfig[] = [
   {
     id: 160,
-    name: "feeConcessionEligible",
-    type: "checkbox",
-    label: "Apply for Fee Concession",
+    name: "additionalInfo",
+    type: "textarea",
+    placeholder: "Enter any additional information",
+    label: "Additional Information",
     required: false,
-    info: "Check if you believe you're eligible for fee concession based on family income or merit.",
+    info: "Provide any other relevant information about your application",
   },
   {
     id: 161,
-    name: "communityDwellerCategory",
-    type: "select",
-    label: "Category (for quota eligibility)",
-    required: true,
-    errorMessage: "Category is required.",
-    info: "Select your category: General (no quota), OBC (Other Backward Class - requires certificate), SC (Scheduled Caste), ST (Scheduled Tribe).",
-    dependsOn: "category",
+    name: "applyForFeeConcession",
+    type: "checkbox",
+    label: "Apply for Fee Concession",
+    required: false,
+    info: "Check this box if you wish to apply for fee concession based on income certificate or other eligible criteria",
+  },
+  {
+    id: 162,
+    name: "hostelService",
+    type: "checkbox",
+    label: "Avail Hostel Service",
+    required: false,
+    info: "Check this box if you wish to avail hostel accommodation provided by the college",
+  },
+  {
+    id: 163,
+    name: "busService",
+    type: "checkbox",
+    label: "Avail Bus Service",
+    required: false,
+    info: "Check this box if you wish to avail bus transportation service provided by the college",
   },
 ];
 
@@ -847,7 +863,132 @@ export const dropdownOptions = {
     { value: "nri", label: "NRI/Foreign National" },
     { value: "management", label: "Management Quota" },
   ],
+
+  // Updated with proper values
+  qualifyingExam: [
+    // For B.Tech Regular/NRI (12th standard)
+    { value: "kerala-plus-two", label: "Kerala Plus Two" },
+    { value: "cbse-12th", label: "CBSE 12th" },
+    { value: "icse-12th", label: "ICSE 12th" },
+    { value: "state-board-12th", label: "State Board 12th" },
+    {
+      value: "international",
+      label: "International Board (A-Levels, IB, etc.)",
+    },
+
+    // For B.Tech Lateral Entry
+    { value: "diploma-engineering", label: "Diploma in Engineering" },
+    { value: "polytechnic", label: "Polytechnic Diploma" },
+
+    // For MCA
+    { value: "bsc-cs", label: "B.Sc Computer Science" },
+    { value: "bsc-it", label: "B.Sc Information Technology" },
+    { value: "bca", label: "BCA (Bachelor of Computer Applications)" },
+    { value: "btech-cs", label: "B.Tech Computer Science" },
+    { value: "btech-it", label: "B.Tech IT" },
+    { value: "btech-other", label: "B.Tech (Other Streams)" },
+
+    // For M.Tech
+    { value: "btech-civil", label: "B.Tech Civil Engineering" },
+    { value: "btech-mechanical", label: "B.Tech Mechanical Engineering" },
+    { value: "btech-electrical", label: "B.Tech Electrical Engineering" },
+    { value: "btech-ece", label: "B.Tech Electronics & Communication" },
+    { value: "btech-cse", label: "B.Tech Computer Science" },
+    { value: "btech-general", label: "B.Tech (Any Stream)" },
+    { value: "bsc-physics", label: "B.Sc Physics" },
+    { value: "bsc-mathematics", label: "B.Sc Mathematics" },
+
+    { value: "other", label: "Other" },
+  ],
+
+  // Entrance Exam Types
+  entranceExamType: [
+    // For B.Tech
+    { value: "KEAM", label: "KEAM - Kerala Engineering Architecture Medical" },
+    { value: "JEE-Main", label: "JEE Main" },
+    { value: "JEE-Advanced", label: "JEE Advanced" },
+    { value: "CUET", label: "CUET - Common University Entrance Test" },
+    {
+      value: "COMEDK",
+      label:
+        "COMEDK - Consortium of Medical, Engineering and Dental Colleges of Karnataka",
+    },
+    { value: "KCET", label: "KCET - Karnataka Common Entrance Test" },
+    { value: "WBJEE", label: "WBJEE - West Bengal Joint Entrance Examination" },
+    { value: "MHT-CET", label: "MHT CET - Maharashtra Common Entrance Test" },
+    {
+      value: "TS-EAMCET",
+      label:
+        "TS EAMCET - Telangana State Engineering Agricultural and Medical Common Entrance Test",
+    },
+    {
+      value: "AP-EAMCET",
+      label:
+        "AP EAMCET - Andhra Pradesh Engineering Agricultural and Medical Common Entrance Test",
+    },
+    {
+      value: "BITSAT",
+      label:
+        "BITSAT - Birla Institute of Technology and Science Admission Test",
+    },
+    { value: "VITEEE", label: "VITEEE - VIT Engineering Entrance Examination" },
+    {
+      value: "SRMJEEE",
+      label: "SRMJEEE - SRM Joint Engineering Entrance Examination",
+    },
+    { value: "other-btech", label: "Other State/University Entrance Exam" },
+  ],
+
+  // For MCA entrance
+  mcaEntranceExamType: [
+    { value: "KEAM-MCA", label: "KEAM MCA" },
+    { value: "NIMCET", label: "NIMCET - NIT MCA Common Entrance Test" },
+    {
+      value: "MAH-MCA-CET",
+      label: "MAH MCA CET - Maharashtra MCA Common Entrance Test",
+    },
+    { value: "OJEE", label: "OJEE - Odisha Joint Entrance Examination" },
+    { value: "KCET", label: "KCET - Karnataka Common Entrance Test" },
+    { value: "TANCET", label: "TANCET - Tamil Nadu Common Entrance Test" },
+    { value: "IPU-CET", label: "IPU CET - IP University Common Entrance Test" },
+    { value: "BIT-MCA", label: "BIT MCA" },
+    {
+      value: "UPSEE",
+      label: "UPSEE - Uttar Pradesh State Entrance Examination",
+    },
+    { value: "university-entrance", label: "University Entrance Exam" },
+    { value: "other-mca", label: "Other" },
+  ],
+
+  // For M.Tech entrance
+  mtechEntranceExamType: [
+    { value: "GATE", label: "GATE - Graduate Aptitude Test in Engineering" },
+    { value: "KEAM-MTech", label: "KEAM M.Tech" },
+    {
+      value: "PGECET",
+      label: "PGECET - Post Graduate Engineering Common Entrance Test",
+    },
+    { value: "TANCET", label: "TANCET - Tamil Nadu Common Entrance Test" },
+    { value: "Karnataka-PGCET", label: "Karnataka PGCET" },
+    {
+      value: "AP-PGECET",
+      label:
+        "AP PGECET - Andhra Pradesh Post Graduate Engineering Common Entrance Test",
+    },
+    {
+      value: "TS-PGECET",
+      label:
+        "TS PGECET - Telangana State Post Graduate Engineering Common Entrance Test",
+    },
+    { value: "OJEE", label: "OJEE - Odisha Joint Entrance Examination" },
+    { value: "university-entrance", label: "University Entrance Exam" },
+    { value: "direct", label: "Direct Admission (Based on B.Tech marks)" },
+    { value: "other-mtech", label: "Other" },
+  ],
+
+  // Kept for backward compatibility - remove these if not used elsewhere
   qualifyingExamBTech: [
+    { value: "kerala-plus-two", label: "Kerala Plus Two" },
     { value: "cbse-12th", label: "CBSE 12th" },
     { value: "icse-12th", label: "ICSE 12th" },
     { value: "state-board-12th", label: "State Board 12th" },
@@ -864,22 +1005,22 @@ export const dropdownOptions = {
     { value: "bca", label: "BCA (Bachelor of Computer Applications)" },
   ],
   entranceExamBTech: [
-    { value: "keam", label: "KEAM (Kerala Engineering Agriculture Medical)" },
-    { value: "jee-main", label: "JEE Main" },
-    { value: "jee-advanced", label: "JEE Advanced" },
-    { value: "cuet", label: "CUET" },
+    { value: "KEAM", label: "KEAM (Kerala Engineering Agriculture Medical)" },
+    { value: "JEE-Main", label: "JEE Main" },
+    { value: "JEE-Advanced", label: "JEE Advanced" },
+    { value: "CUET", label: "CUET" },
     { value: "other", label: "Other State Entrance Exam" },
   ],
   entranceExamMCA: [
-    { value: "cat", label: "CAT (Common Admission Test)" },
-    { value: "gate", label: "GATE (for sponsored/government seats)" },
-    { value: "mat", label: "MAT (Management Aptitude Test)" },
+    { value: "KEAM-MCA", label: "KEAM MCA" },
+    { value: "NIMCET", label: "NIMCET" },
+    { value: "MAH-MCA-CET", label: "MAH MCA CET" },
     { value: "university-entrance", label: "University Entrance Exam" },
     { value: "other", label: "Other" },
   ],
   entranceExamMTech: [
-    { value: "gate", label: "GATE" },
-    { value: "keam-mtech", label: "KEAM M.Tech" },
+    { value: "GATE", label: "GATE" },
+    { value: "KEAM-MTech", label: "KEAM M.Tech" },
     { value: "university-entrance", label: "University Entrance Exam" },
     { value: "direct", label: "Direct Admission (Based on B.Tech marks)" },
   ],
