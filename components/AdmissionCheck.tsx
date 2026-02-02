@@ -1,19 +1,13 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import {
-  FiCheckCircle,
-  FiXCircle,
-  FiClock,
-  FiAlertCircle,
-  FiArrowRight,
-} from "react-icons/fi";
+import { FiArrowRight, FiCalendar, FiClock } from "react-icons/fi";
+import { FaRankingStar } from "react-icons/fa6";
 
 interface AdmissionStatus {
   open: boolean;
   deadline: string;
   openDate?: string;
-  description: string;
 }
 
 interface AdmissionCheckProps {
@@ -36,443 +30,311 @@ const AdmissionCheck: React.FC<AdmissionCheckProps> = ({
       try {
         setLoading(true);
         setError(null);
-
         const response = await fetch("/api/admission/status");
-
-        if (!response.ok) {
-          throw new Error("Failed to fetch admission status");
-        }
+        if (!response.ok) throw new Error("Failed to fetch status");
 
         const data = await response.json();
-
-        // Handle both response formats
-        const admissions =
-          data.admissionsOpen || data.data?.admissionsOpen || {};
-
+        const admissions = data.admissionsOpen || data.data?.admissionsOpen || {};
         setAdmissionData(admissions);
 
-        // Get list of open programs
         const openPrograms = Object.keys(admissions).filter(
           (program) => admissions[program]?.open === true
         );
-
         onAdmissionsReady(openPrograms);
       } catch (err) {
-        console.error("Error checking admission status:", err);
-        setError(
-          "Unable to load admission information. Please check your connection and try again."
-        );
-        onAdmissionsReady([]);
+        console.error(err);
+        setError("Unable to load admission data.");
       } finally {
         setLoading(false);
       }
     };
-
     checkAdmissionStatus();
   }, [onAdmissionsReady]);
 
-  if (loading) {
-    return (
-      <motion.div
-        className="bg-white rounded-2xl shadow-lg p-12 max-w-md mx-auto"
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.3 }}
-      >
-        <div className="flex flex-col items-center justify-center gap-6">
-          {/* Modern Loading Animation */}
-          <div className="relative w-20 h-20">
-            {/* Outer Ring */}
-            <motion.div
-              className="absolute inset-0 border-4 border-blue-200 rounded-full"
-              animate={{ rotate: 360 }}
-              transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-            />
-            {/* Inner Ring */}
-            <motion.div
-              className="absolute inset-2 border-4 border-transparent border-t-blue-600 rounded-full"
-              animate={{ rotate: -360 }}
-              transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
-            />
-            {/* Center Dot */}
-            <motion.div
-              className="absolute inset-0 flex items-center justify-center"
-              animate={{ scale: [1, 1.2, 1] }}
-              transition={{ duration: 1, repeat: Infinity }}
-            >
-              <div className="w-3 h-3 bg-blue-600 rounded-full"></div>
-            </motion.div>
-          </div>
+  // --- Logic ---
+  const now = new Date();
+  const ongoing: [string, AdmissionStatus][] = [];
+  const upcoming: [string, AdmissionStatus][] = [];
+  const closed: [string, AdmissionStatus][] = [];
 
-          <div className="text-center">
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">
-              Loading Admission Status
-            </h3>
-            <p className="text-gray-600 text-sm">
-              Please wait while we check available programs...
-            </p>
-          </div>
-        </div>
-      </motion.div>
-    );
-  }
+  if (admissionData) {
+    Object.entries(admissionData).forEach(([key, status]) => {
+      if (status.open) {
+        ongoing.push([key, status]);
+      } else {
+        const deadlineDate = new Date(status.deadline);
+        const openDate = status.openDate ? new Date(status.openDate) : null;
 
-  if (error) {
-    return (
-      <motion.div
-        className="bg-white rounded-2xl shadow-lg p-8 max-w-2xl mx-auto border-2 border-red-200"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3 }}
-      >
-        <div className="flex flex-col items-center gap-6">
-          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center">
-            <FiAlertCircle className="text-red-600" size={32} />
-          </div>
-          <div className="text-center">
-            <h3 className="text-xl font-semibold text-gray-900 mb-3">
-              Connection Error
-            </h3>
-            <p className="text-gray-600 mb-6 text-sm">{error}</p>
-            <button
-              onClick={() => window.location.reload()}
-              className="px-6 py-2.5 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors text-sm cursor-pointer"
-            >
-              Try Again
-            </button>
-          </div>
-        </div>
-      </motion.div>
-    );
-  }
-
-  if (!admissionData || Object.keys(admissionData).length === 0) {
-    return (
-      <motion.div
-        className="bg-white rounded-2xl shadow-lg p-8 max-w-2xl mx-auto"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3 }}
-      >
-        <div className="flex flex-col items-center gap-6">
-          <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center">
-            <FiClock className="text-yellow-600" size={32} />
-          </div>
-          <div className="text-center">
-            <h3 className="text-xl font-semibold text-gray-900 mb-3">
-              No Admission Information Available
-            </h3>
-            <p className="text-gray-600 text-sm">
-              Admission details are not currently available. Please check back
-              later.
-            </p>
-          </div>
-        </div>
-      </motion.div>
-    );
-  }
-
-  // Check if any admissions are open
-  const hasOpenAdmissions = Object.values(admissionData).some(
-    (program) => program.open === true
-  );
-
-  // Format date for display
-  const formatDate = (dateString: string) => {
-    try {
-      const date = new Date(dateString);
-      return date.toLocaleDateString("en-US", {
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-      });
-    } catch {
-      return dateString;
-    }
-  };
-
-  // Get program display info
-  const getProgramInfo = (programKey: string) => {
-    const programMap: Record<
-      string,
-      { name: string; fullName: string; description: string; gradient: string }
-    > = {
-      btech: {
-        name: "B.Tech",
-        fullName: "Bachelor of Technology",
-        description: "4-year undergraduate program",
-        gradient: "from-blue-500 to-indigo-600",
-      },
-      mca: {
-        name: "MCA",
-        fullName: "Master of Computer Applications",
-        description: "2-year postgraduate program",
-        gradient: "from-purple-500 to-pink-600",
-      },
-      mtech: {
-        name: "M.Tech",
-        fullName: "Master of Technology",
-        description: "2-year postgraduate program",
-        gradient: "from-green-500 to-teal-600",
-      },
-    };
-    return (
-      programMap[programKey.toLowerCase()] || {
-        name: programKey,
-        fullName: programKey,
-        description: "",
-        gradient: "from-gray-500 to-gray-700",
+        // If there is a future open date, it is upcoming
+        if (openDate && openDate > now) {
+          upcoming.push([key, status]);
+        }
+        // If no open date, but deadline is in the future, it is upcoming (implies starts soon)
+        else if (deadlineDate > now) {
+          upcoming.push([key, status]);
+        }
+        // Otherwise it is truly closed
+        else {
+          closed.push([key, status]);
+        }
       }
-    );
+    });
+  }
+
+  // --- Animations ---
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1,
+        delayChildren: 0.2,
+      },
+    },
   };
 
-  // Get open and closed programs
-  const openPrograms = Object.entries(admissionData).filter(
-    ([_, status]) => status.open === true
-  );
-  const closedPrograms = Object.entries(admissionData).filter(
-    ([_, status]) => status.open === false
-  );
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        type: "spring",
+        stiffness: 50,
+        damping: 15
+      } as any
+    },
+  };
 
-  return (
-    <div className="max-w-6xl mx-auto">
-      {/* Open Admissions Section */}
-      {hasOpenAdmissions && (
-        <motion.div
-          className="mb-8"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3 }}
-        >
-          <div className="text-center mb-8">
-            <div className="inline-flex items-center gap-3 bg-green-50 px-6 py-3 rounded-full mb-4">
-              <FiCheckCircle className="text-green-600" size={24} />
-              <span className="text-green-900 font-semibold">
-                Admissions Open
-              </span>
-            </div>
-            <h2 className="text-2xl sm:text-3xl font-semibold text-gray-900 mb-2">
-              Apply Now
-            </h2>
-            <p className="text-gray-600 text-sm">
-              Select your program to begin the application process
-            </p>
-          </div>
+  const loaderVariants = {
+    start: { transition: { staggerChildren: 0.2 } },
+    end: { transition: { staggerChildren: 0.2 } },
+  };
 
-          {/* Open Programs Grid */}
-          <div
-            className={`grid gap-4 ${
-              openPrograms.length === 1
-                ? "max-w-sm mx-auto"
-                : openPrograms.length === 2
-                ? "max-w-2xl mx-auto grid-cols-1 sm:grid-cols-2"
-                : "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
-            }`}
-          >
-            <AnimatePresence>
-              {openPrograms.map(([programKey, status], index) => {
-                const programInfo = getProgramInfo(programKey);
+  const dotVariants = {
+    start: { y: "0%" },
+    end: { y: "100%" },
+  };
 
-                return (
-                  <motion.button
-                    key={programKey}
-                    onClick={() => onProgramSelect(programKey)}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.08, duration: 0.3 }}
-                    whileHover={{ scale: 1.02, y: -2 }}
-                    whileTap={{ scale: 0.98 }}
-                    className="relative overflow-hidden bg-white rounded-xl shadow-md hover:shadow-xl p-6 text-left transition-all duration-200 border border-gray-200 hover:border-transparent group cursor-pointer"
-                  >
-                    {/* Gradient Bar */}
-                    <div
-                      className={`absolute top-0 left-0 right-0 h-1 bg-gradient-to-r ${programInfo.gradient}`}
-                    ></div>
+  const dotTransition = {
+    duration: 0.5,
+    repeat: Infinity,
+    repeatType: "mirror",
+    ease: "easeInOut",
+  };
 
-                    {/* Status Badge */}
-                    <div className="absolute top-4 right-4">
-                      <div className="flex items-center gap-1.5 bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-medium">
-                        <FiCheckCircle size={12} />
-                        <span>Open</span>
-                      </div>
-                    </div>
+  const getInfo = (key: string) => {
+    const map: Record<string, { title: string; sub: string }> = {
+      btech: { title: "B.Tech", sub: "Bachelor of Technology" },
+      mca: { title: "MCA", sub: "Master of Computer Applications" },
+      mtech: { title: "M.Tech", sub: "Master of Technology" },
+    };
+    return map[key.toLowerCase()] || { title: key, sub: "Program" };
+  };
 
-                    {/* Content */}
-                    <div className="relative z-10 mt-2">
-                      <h3 className="text-xl font-semibold text-gray-900 mb-1">
-                        {programInfo.name}
-                      </h3>
-                      <p className="text-sm text-gray-600 mb-1">
-                        {programInfo.fullName}
-                      </p>
-                      <p className="text-xs text-gray-500 mb-3">
-                        {programInfo.description}
-                      </p>
+  const formatDate = (s: string) => new Date(s).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 
-                      {/* Deadline */}
-                      <div className="flex items-center gap-2 text-xs text-gray-600 mb-4 bg-gray-50 px-3 py-2 rounded-lg">
-                        <FiClock size={14} />
-                        <span>
-                          Deadline:{" "}
-                          <strong>{formatDate(status.deadline)}</strong>
-                        </span>
-                      </div>
+  const Section = ({ title, items, type }: { title: string, items: [string, AdmissionStatus][], type: 'ongoing' | 'upcoming' | 'closed' }) => {
+    if (items.length === 0) return null;
+    return (
+      <motion.div variants={itemVariants} className="mb-16">
+        <h3 className="text-[10px] font-mono font-bold uppercase tracking-widest mb-6 text-[#1a1917]/40 flex items-center gap-2">
+          {type === 'ongoing' && <span className="h-2 w-2 rounded-full bg-[#ccff00] shadow-[0_0_10px_#ccff00] animate-pulse" />}
+          {title}
+        </h3>
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+          {items.map(([key, status]) => {
+            const info = getInfo(key);
+            return (
+              <motion.div
+                key={key}
+                variants={itemVariants}
+                whileHover={type === 'ongoing' ? { y: -4, transition: { duration: 0.2 } } : {}}
+                onClick={() => type === 'ongoing' && onProgramSelect(key)}
+                className={`
+                  relative p-6 group rounded-[2rem] border
+                  transition-all duration-300 overflow-hidden
+                  ${type === 'ongoing'
+                    ? 'cursor-pointer bg-[#efede6] border-black/5 hover:border-[#ccff00]/50 hover:shadow-xl'
+                    : 'bg-[#f5f5f0] border-transparent opacity-60 grayscale'}
+                  ${type === 'upcoming' ? 'border-dashed border-black/10' : ''}
+                `}
+              >
+                {type === 'ongoing' && (
+                  <div className="absolute top-0 left-0 w-full h-1 bg-[#ccff00] transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left" />
+                )}
 
-                      <div className="inline-flex items-center gap-2 text-blue-600 text-sm font-medium group-hover:gap-3 transition-all">
-                        Apply Now
-                        <FiArrowRight
-                          size={16}
-                          className="group-hover:translate-x-1 transition-transform duration-200"
-                        />
-                      </div>
-                    </div>
-
-                    {/* Background Gradient on Hover */}
-                    <div
-                      className={`absolute inset-0 bg-gradient-to-br ${programInfo.gradient} opacity-0 group-hover:opacity-5 transition-opacity duration-200`}
-                    ></div>
-                  </motion.button>
-                );
-              })}
-            </AnimatePresence>
-          </div>
-        </motion.div>
-      )}
-
-      {/* Closed Admissions Section */}
-      {closedPrograms.length > 0 && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: hasOpenAdmissions ? 0.2 : 0, duration: 0.3 }}
-        >
-          <div className="text-center mb-6">
-            <h3 className="text-lg font-medium text-gray-700 mb-2">
-              {hasOpenAdmissions
-                ? "Currently Closed"
-                : "Admissions Currently Closed"}
-            </h3>
-            <p className="text-sm text-gray-500">
-              {hasOpenAdmissions
-                ? "These programs are not accepting applications at this time"
-                : "No programs are currently accepting applications"}
-            </p>
-          </div>
-
-          <div
-            className={`grid gap-4 ${
-              closedPrograms.length === 1
-                ? "max-w-sm mx-auto"
-                : closedPrograms.length === 2
-                ? "max-w-2xl mx-auto grid-cols-1 sm:grid-cols-2"
-                : "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
-            }`}
-          >
-            {closedPrograms.map(([programKey, status], index) => {
-              const programInfo = getProgramInfo(programKey);
-
-              return (
-                <motion.div
-                  key={programKey}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{
-                    delay:
-                      (hasOpenAdmissions ? openPrograms.length : 0) * 0.08 +
-                      index * 0.08,
-                    duration: 0.3,
-                  }}
-                  className="relative overflow-hidden bg-white rounded-xl shadow-sm p-6 text-left border-2 border-gray-200 opacity-75"
-                >
-                  {/* Gradient Bar (muted) */}
-                  <div
-                    className={`absolute top-0 left-0 right-0 h-1 bg-gradient-to-r ${programInfo.gradient} opacity-30`}
-                  ></div>
-
-                  {/* Status Badge */}
-                  <div className="absolute top-4 right-4">
-                    <div className="flex items-center gap-1.5 bg-gray-100 text-gray-600 px-3 py-1 rounded-full text-xs font-medium">
-                      <FiXCircle size={12} />
-                      <span>Closed</span>
-                    </div>
-                  </div>
-
-                  {/* Content */}
-                  <div className="relative z-10 mt-2">
-                    <h3 className="text-xl font-semibold text-gray-900 mb-1">
-                      {programInfo.name}
-                    </h3>
-                    <p className="text-sm text-gray-600 mb-1">
-                      {programInfo.fullName}
-                    </p>
-                    <p className="text-xs text-gray-500 mb-3">
-                      {programInfo.description}
-                    </p>
-
-                    {/* Date Info */}
-                    <div className="flex items-center gap-2 text-xs text-gray-600 bg-gray-50 px-3 py-2 rounded-lg">
-                      <FiClock size={14} />
-                      <span>
-                        {status.openDate ? (
-                          <>
-                            Opens on:{" "}
-                            <strong>{formatDate(status.openDate)}</strong>
-                          </>
-                        ) : (
-                          <>
-                            Closed until:{" "}
-                            <strong>{formatDate(status.deadline)}</strong>
-                          </>
-                        )}
-                      </span>
-                    </div>
-                  </div>
-                </motion.div>
-              );
-            })}
-          </div>
-
-          {/* Contact Info for Closed Admissions */}
-          {!hasOpenAdmissions && (
-            <motion.div
-              className="bg-orange-50 border border-orange-200 rounded-xl p-6 mt-8 max-w-2xl mx-auto"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.4 }}
-            >
-              <div className="flex items-start gap-4">
-                <FiAlertCircle
-                  className="text-orange-600 flex-shrink-0 mt-1"
-                  size={20}
-                />
-                <div className="flex-1">
-                  <h4 className="font-semibold text-gray-900 mb-2 text-sm">
-                    Need More Information?
-                  </h4>
-                  <p className="text-gray-700 text-sm mb-4">
-                    For admission inquiries and updates, please contact our
-                    admissions office.
-                  </p>
-                  <div className="flex flex-wrap gap-4 text-sm">
-                    <a
-                      href="mailto:admissions@cec.ac.in"
-                      className="text-blue-600 hover:text-blue-700 font-medium inline-flex items-center gap-1 cursor-pointer"
-                    >
-                      📧 admissions@cec.ac.in
-                    </a>
-                    <a
-                      href="tel:+914782812345"
-                      className="text-blue-600 hover:text-blue-700 font-medium inline-flex items-center gap-1 cursor-pointer"
-                    >
-                      📞 +91 478 281 2345
-                    </a>
+                <div className="flex justify-between items-start mb-6 relative z-10">
+                  <div>
+                    <h4 className="text-3xl font-serif text-[#1a1917] tracking-tight">{info.title}</h4>
+                    <p className="text-[10px] text-[#1a1917]/60 mt-2 font-mono uppercase tracking-widest">{info.sub}</p>
                   </div>
                 </div>
-              </div>
+
+                <div className={`space-y-4 mt-12 relative z-10 ${type === 'ongoing' ? 'group-hover:opacity-0 transition-opacity duration-300' : ''}`}>
+                  {type === 'upcoming' && !status.openDate && (
+                    <div className="text-sm font-mono opacity-50 italic">Opening details TBA</div>
+                  )}
+
+                  {(type !== 'upcoming' || status.openDate) && (
+                    <div className="flex items-center justify-between text-xs font-mono text-[#1a1917]/70">
+                      <span className="uppercase tracking-wider">{type === 'upcoming' ? 'Opens' : 'Deadline'}</span>
+                      <span className="font-bold">{type === 'upcoming' && status.openDate ? formatDate(status.openDate) : formatDate(status.deadline)}</span>
+                    </div>
+                  )}
+                </div>
+
+                {type === 'ongoing' && (
+                  <div className="absolute bottom-6 right-6 overflow-hidden z-10">
+                    <div className="w-10 h-10 rounded-full bg-[#ccff00] flex items-center justify-center transform translate-y-20 group-hover:translate-y-0 transition-transform duration-300">
+                      <FiArrowRight className="text-black text-lg" />
+                    </div>
+                  </div>
+                )}
+              </motion.div>
+            );
+          })}
+        </div>
+      </motion.div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen w-full bg-[#fbfbf6] text-[#1a1917] font-sans selection:bg-[#ccff00] selection:text-black flex relative overflow-hidden">
+      {/* Noise Overlay */}
+      <div className="fixed inset-0 pointer-events-none z-50 opacity-[0.03] mix-blend-overlay">
+        <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+          <filter id="noiseFilterAdmission">
+            <feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" stitchTiles="stitch" />
+          </filter>
+          <rect width="100%" height="100%" filter="url(#noiseFilterAdmission)" />
+        </svg>
+      </div>
+
+      {/* LEFT SIDE - Scrollable Content */}
+      <div className="w-full lg:w-1/2 px-6 py-12 md:p-20 overflow-y-auto flex flex-col min-h-screen relative z-10">
+
+        {loading ? (
+          <div className="flex-1 flex flex-col justify-center items-center space-y-8">
+            <motion.div
+              className="flex space-x-3"
+              variants={loaderVariants}
+              initial="start"
+              animate="end"
+            >
+              {[0, 1, 2].map(i => (
+                <motion.div
+                  key={i}
+                  className="w-3 h-3 bg-[#ccff00] rounded-full"
+                  variants={dotVariants}
+                  transition={dotTransition as any}
+                />
+              ))}
             </motion.div>
-          )}
-        </motion.div>
-      )}
+            <p className="font-mono text-[10px] tracking-widest uppercase opacity-40">Loading Portal...</p>
+          </div>
+        ) : error ? (
+          <div className="flex-1 flex justify-center items-center text-red-500 font-mono text-sm">{error}</div>
+        ) : (
+          <motion.div
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+            className="w-full"
+          >
+            <motion.header variants={itemVariants} className="mb-20 space-y-6 border-b border-black/5 pb-12">
+              <div className="inline-block mb-4">
+                <span className="px-3 py-1 font-mono text-[10px] uppercase tracking-widest border border-black/10 rounded-full bg-white/50">
+                  Academic Year 2025-26
+                </span>
+              </div>
+              <h1 className="text-6xl md:text-8xl font-serif tracking-tight text-[#1a1917] leading-[0.85]">
+                Apply <br />
+                <span className="font-light italic opacity-50">Now.</span>
+              </h1>
+            </motion.header>
+
+            <div className="space-y-12">
+              <Section title="Open Applications" items={ongoing} type="ongoing" />
+              <Section title="Approaching" items={upcoming} type="upcoming" />
+              <Section title="Archived" items={closed} type="closed" />
+
+              {ongoing.length === 0 && upcoming.length === 0 && closed.length === 0 && (
+                <motion.div variants={itemVariants} className="py-20 text-center border border-dashed border-black/10 rounded-[2rem]">
+                  <p className="opacity-40 font-mono text-sm">No active admission cycles.</p>
+                </motion.div>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </div>
+
+      {/* RIGHT SIDE - Fixed Visuals */}
+      <div className="hidden lg:flex w-1/2 relative items-center justify-center overflow-hidden border-l border-black/5 bg-[#f5f5f0]">
+        {/* Animated Background Blobs - Earth/Neon Theme */}
+        <motion.div
+          animate={{
+            scale: [1, 1.2, 1],
+            rotate: [0, 90, 0],
+          }}
+          transition={{ duration: 20, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute top-1/4 left-1/4 w-96 h-96 bg-[#ccff00]/20 rounded-full blur-3xl mix-blend-multiply"
+        />
+        <motion.div
+          animate={{
+            scale: [1.2, 1, 1.2],
+            rotate: [0, -60, 0],
+          }}
+          transition={{ duration: 15, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+          className="absolute bottom-1/4 right-1/4 w-[500px] h-[500px] bg-emerald-500/10 rounded-full blur-3xl mix-blend-multiply"
+        />
+
+        {/* Decorative Card Stack - Bento Style */}
+        <div className="relative z-10 w-96">
+          <motion.div
+            initial={{ opacity: 0, y: 40, rotate: -6 }}
+            animate={{ opacity: 1, y: 0, rotate: -6 }}
+            transition={{ duration: 0.8, delay: 0.4 }}
+            className="absolute inset-0 bg-[#efede6] border border-black/5 shadow-sm rounded-[2.5rem] h-64 w-full"
+          />
+          <motion.div
+            initial={{ opacity: 0, y: 40, rotate: 6 }}
+            animate={{ opacity: 1, y: 0, rotate: 6 }}
+            transition={{ duration: 0.8, delay: 0.5 }}
+            className="absolute inset-0 bg-[#fbfbf6] border border-black/5 shadow-md rounded-[2.5rem] h-64 w-full"
+          />
+          <motion.div
+            initial={{ opacity: 0, y: 40 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.6 }}
+            className="relative bg-[#fbfbf6]/80 backdrop-blur-xl border border-white/50 shadow-2xl rounded-[2.5rem] p-10 h-96 flex flex-col justify-between"
+          >
+            <div className="space-y-6">
+              <div className="w-16 h-16 rounded-2xl bg-[#ccff00] flex items-center justify-center text-black text-2xl shadow-lg shadow-[#ccff00]/20">
+                <FaRankingStar />
+              </div>
+              <div>
+                <h3 className="text-3xl font-serif text-[#1a1917] leading-none mb-3">Begin Journey</h3>
+                <p className="text-[#1a1917]/60 font-sans text-sm leading-relaxed">
+                  "Education is the passport to the future, for tomorrow belongs to those who prepare for it today."
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-4 pt-8 border-t border-black/5">
+              <div className="flex -space-x-3">
+                {[1, 2, 3].map(i => (
+                  <div key={i} className="w-10 h-10 rounded-full bg-[#e6e2d6] border-2 border-[#fbfbf6]" />
+                ))}
+              </div>
+              <div>
+                <div className="text-[10px] font-mono uppercase tracking-widest opacity-40">Join Today</div>
+                <div className="font-bold text-sm">1000+ Students</div>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      </div>
     </div>
   );
 };

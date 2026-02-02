@@ -14,6 +14,7 @@ export interface FormFieldConfig {
   admissionTypes?: ("regular" | "lateral" | "nri" | "management")[]; // undefined = all types
   dependsOn?: string; // Field this depends on for visibility
   dependsOnValue?: string | string[]; // Value(s) that trigger visibility
+  options?: { value: string; label: string }[]; // Options for select/radio
 }
 
 // Personal Information Fields
@@ -60,15 +61,15 @@ export const personalInfoFields: FormFieldConfig[] = [
     name: "religion",
     type: "text",
     label: "Religion",
-    required: false,
-    info: "Used for hostel and dietary accommodation arrangements.",
+    required: true,
+    info: "Specify your religion (e.g., Hindu, Muslim, Christian). Used for statistical purposes.",
   },
   {
     id: 6,
     name: "motherTongue",
     type: "text",
     label: "Mother Tongue",
-    required: false,
+    required: true,
     info: "Your primary language spoken at home.",
   },
   {
@@ -122,12 +123,13 @@ export const personalInfoFields: FormFieldConfig[] = [
   },
   {
     id: 12,
-    name: "admissionQuota",
+    name: "preferredDepartment",
     type: "select",
-    label: "Admission Quota",
+    label: "Preferred Department/Branch",
     required: true,
-    errorMessage: "Admission Quota is required.",
-    info: "Select the quota under which you're applying: General, Sponsored (for specific organizations), or Management quota.",
+    errorMessage: "Please select your preferred department.",
+    info: "Select the department/branch you wish to join. This will be considered during class assignment after approval.",
+    // Note: Options will be loaded dynamically from the database
   },
 ];
 
@@ -188,7 +190,7 @@ export const parentInfoFields: FormFieldConfig[] = [
     name: "annualFamilyIncome",
     type: "text",
     label: "Annual Family Income (₹)",
-    required: false,
+    required: true,
     pattern: "^[0-9]+$",
     errorMessage: "Enter a valid amount in rupees.",
     info: "Total annual income of the family. Used for fee concession eligibility assessment.",
@@ -253,14 +255,7 @@ export const addressInfoFields: FormFieldConfig[] = [
     errorMessage: "State is required.",
     info: "State where your current address is located.",
   },
-  {
-    id: 44,
-    name: "stateOfResidence",
-    type: "text",
-    label: "State of Residence",
-    required: true,
-    info: "Your primary state of residence. Important for quota eligibility.",
-  },
+
   {
     id: 45,
     name: "localGuardianName",
@@ -341,8 +336,8 @@ export const educationInfoFieldsBTechRegular: FormFieldConfig[] = [
     type: "number",
     label: "Physics Score (Plus Two)",
     required: true,
-    pattern: "^([0-9]{1,2}|100)(\\.\\d{1,2})?$",
-    errorMessage: "Enter a valid physics score (0-100).",
+    pattern: "^([0-9]{1,2}|1[0-9]{2}|200)(\\.\\d{1,2})?$",
+    errorMessage: "Enter a valid physics score (0-200).",
     info: "Your score in Physics from Plus Two/12th standard. Important for engineering foundation.",
     programs: ["btech"],
     admissionTypes: ["regular", "nri"],
@@ -353,8 +348,8 @@ export const educationInfoFieldsBTechRegular: FormFieldConfig[] = [
     type: "number",
     label: "Chemistry Score (Plus Two)",
     required: true,
-    pattern: "^([0-9]{1,2}|100)(\\.\\d{1,2})?$",
-    errorMessage: "Enter a valid chemistry score (0-100).",
+    pattern: "^([0-9]{1,2}|1[0-9]{2}|200)(\\.\\d{1,2})?$",
+    errorMessage: "Enter a valid chemistry score (0-200).",
     info: "Your score in Chemistry from Plus Two/12th standard.",
     programs: ["btech"],
     admissionTypes: ["regular", "nri"],
@@ -365,8 +360,8 @@ export const educationInfoFieldsBTechRegular: FormFieldConfig[] = [
     type: "number",
     label: "Mathematics Score (Plus Two)",
     required: true,
-    pattern: "^([0-9]{1,2}|100)(\\.\\d{1,2})?$",
-    errorMessage: "Enter a valid mathematics score (0-100).",
+    pattern: "^([0-9]{1,2}|1[0-9]{2}|200)(\\.\\d{1,2})?$",
+    errorMessage: "Enter a valid mathematics score (0-200).",
     info: "Your score in Mathematics from Plus Two/12th standard. Essential for engineering courses.",
     programs: ["btech"],
     admissionTypes: ["regular", "nri"],
@@ -522,7 +517,79 @@ export const entranceExamFieldsBTechRegular: FormFieldConfig[] = [
     errorMessage: "Enter a valid score.",
     info: "Your total score in the entrance exam.",
     programs: ["btech"],
-    admissionTypes: ["regular", "nri"],
+    admissionTypes: ["regular", "management"],
+  },
+];
+
+// Entrance Exam Fields - B.Tech NRI (Optional)
+export const entranceExamFieldsBTechNRI: FormFieldConfig[] = [
+  {
+    id: 170,
+    name: "hasEntranceExam",
+    type: "select",
+    label: "Do you have Entrance Exam Qualification?",
+    required: true,
+    info: "Select 'Yes' if you have appeared for any entrance exam.",
+    programs: ["btech"],
+    admissionTypes: ["nri"],
+    options: [
+      { value: "yes", label: "Yes" },
+      { value: "no", label: "No" },
+    ],
+  },
+  {
+    id: 171,
+    name: "entranceExamType",
+    type: "select",
+    label: "Entrance Exam Type",
+    required: true,
+    errorMessage: "Entrance exam type is required.",
+    info: "Type of entrance exam you appeared for.",
+    programs: ["btech"],
+    admissionTypes: ["nri"],
+    dependsOn: "hasEntranceExam",
+    dependsOnValue: "yes",
+  },
+  {
+    id: 172,
+    name: "entranceExamRollNumber",
+    type: "text",
+    label: "Entrance Exam Roll Number",
+    required: true,
+    errorMessage: "Roll number is required.",
+    info: "Your roll number/registration number.",
+    programs: ["btech"],
+    admissionTypes: ["nri"],
+    dependsOn: "hasEntranceExam",
+    dependsOnValue: "yes",
+  },
+  {
+    id: 173,
+    name: "entranceRank",
+    type: "number",
+    label: "Entrance Exam Rank",
+    required: true,
+    pattern: "^[0-9]+$",
+    errorMessage: "Rank must be numeric.",
+    info: "Your rank in the entrance exam.",
+    programs: ["btech"],
+    admissionTypes: ["nri"],
+    dependsOn: "hasEntranceExam",
+    dependsOnValue: "yes",
+  },
+  {
+    id: 174,
+    name: "entranceExamScore",
+    type: "number",
+    label: "Entrance Exam Score",
+    required: true,
+    pattern: "^([0-9]{1,3}|1000)(\\.\\d{1,2})?$",
+    errorMessage: "Enter a valid score.",
+    info: "Your total score in the entrance exam.",
+    programs: ["btech"],
+    admissionTypes: ["nri"],
+    dependsOn: "hasEntranceExam",
+    dependsOnValue: "yes",
   },
 ];
 
@@ -733,52 +800,18 @@ export const bankInfoFields: FormFieldConfig[] = [
     name: "bankBranch",
     type: "text",
     label: "Bank Branch Name",
-    required: false,
+    required: true,
     info: "Name of the branch where your account is held.",
   },
 ];
 
 // Additional Information Fields
-export const additionalInfoFields: FormFieldConfig[] = [
-  {
-    id: 160,
-    name: "additionalInfo",
-    type: "textarea",
-    placeholder: "Enter any additional information",
-    label: "Additional Information",
-    required: false,
-    info: "Provide any other relevant information about your application",
-  },
-  {
-    id: 161,
-    name: "applyForFeeConcession",
-    type: "checkbox",
-    label: "Apply for Fee Concession",
-    required: false,
-    info: "Check this box if you wish to apply for fee concession based on income certificate or other eligible criteria",
-  },
-  {
-    id: 162,
-    name: "hostelService",
-    type: "checkbox",
-    label: "Avail Hostel Service",
-    required: false,
-    info: "Check this box if you wish to avail hostel accommodation provided by the college",
-  },
-  {
-    id: 163,
-    name: "busService",
-    type: "checkbox",
-    label: "Avail Bus Service",
-    required: false,
-    info: "Check this box if you wish to avail bus transportation service provided by the college",
-  },
-];
+export const additionalInfoFields: FormFieldConfig[] = [];
 
 // Utility function to get fields for a specific program
 export const getFieldsForProgram = (
   program: "btech" | "mca" | "mtech",
-  admissionType: "regular" | "lateral" | "nri" | "management" = "regular"
+  admissionType: "regular" | "lateral" | "nri" | "management" = "regular",
 ) => {
   const fields: FormFieldConfig[] = [];
 
@@ -792,7 +825,7 @@ export const getFieldsForProgram = (
       fields.push(...educationInfoFieldsCommon);
       fields.push(...educationInfoFieldsBTechLateral);
       fields.push(...tcFields);
-    } else if (admissionType === "regular" || admissionType === "nri") {
+    } else if (admissionType === "regular") {
       fields.push(...educationInfoFieldsCommon);
       fields.push(...educationInfoFieldsBTechRegular);
       fields.push(...entranceExamFieldsBTechRegular);
@@ -800,6 +833,12 @@ export const getFieldsForProgram = (
     } else if (admissionType === "management") {
       fields.push(...educationInfoFieldsCommon);
       fields.push(...educationInfoFieldsBTechRegular);
+      fields.push(...entranceExamFieldsBTechRegular);
+      fields.push(...tcFields);
+    } else if (admissionType === "nri") {
+      fields.push(...educationInfoFieldsCommon);
+      fields.push(...educationInfoFieldsBTechRegular);
+      fields.push(...entranceExamFieldsBTechNRI);
       fields.push(...tcFields);
     }
   } else if (program === "mca") {
@@ -847,11 +886,7 @@ export const dropdownOptions = {
     { value: "SC", label: "SC - Scheduled Caste" },
     { value: "ST", label: "ST - Scheduled Tribe" },
   ],
-  admissionQuota: [
-    { value: "general", label: "General Quota" },
-    { value: "sponsored", label: "Sponsored Quota" },
-    { value: "management", label: "Management Quota" },
-  ],
+
   program: [
     { value: "btech", label: "B.Tech (Bachelor of Technology)" },
     { value: "mca", label: "MCA (Master of Computer Applications)" },
@@ -905,86 +940,13 @@ export const dropdownOptions = {
   entranceExamType: [
     // For B.Tech
     { value: "KEAM", label: "KEAM - Kerala Engineering Architecture Medical" },
-    { value: "JEE-Main", label: "JEE Main" },
-    { value: "JEE-Advanced", label: "JEE Advanced" },
-    { value: "CUET", label: "CUET - Common University Entrance Test" },
-    {
-      value: "COMEDK",
-      label:
-        "COMEDK - Consortium of Medical, Engineering and Dental Colleges of Karnataka",
-    },
-    { value: "KCET", label: "KCET - Karnataka Common Entrance Test" },
-    { value: "WBJEE", label: "WBJEE - West Bengal Joint Entrance Examination" },
-    { value: "MHT-CET", label: "MHT CET - Maharashtra Common Entrance Test" },
-    {
-      value: "TS-EAMCET",
-      label:
-        "TS EAMCET - Telangana State Engineering Agricultural and Medical Common Entrance Test",
-    },
-    {
-      value: "AP-EAMCET",
-      label:
-        "AP EAMCET - Andhra Pradesh Engineering Agricultural and Medical Common Entrance Test",
-    },
-    {
-      value: "BITSAT",
-      label:
-        "BITSAT - Birla Institute of Technology and Science Admission Test",
-    },
-    { value: "VITEEE", label: "VITEEE - VIT Engineering Entrance Examination" },
-    {
-      value: "SRMJEEE",
-      label: "SRMJEEE - SRM Joint Engineering Entrance Examination",
-    },
-    { value: "other-btech", label: "Other State/University Entrance Exam" },
   ],
 
   // For MCA entrance
-  mcaEntranceExamType: [
-    { value: "KEAM-MCA", label: "KEAM MCA" },
-    { value: "NIMCET", label: "NIMCET - NIT MCA Common Entrance Test" },
-    {
-      value: "MAH-MCA-CET",
-      label: "MAH MCA CET - Maharashtra MCA Common Entrance Test",
-    },
-    { value: "OJEE", label: "OJEE - Odisha Joint Entrance Examination" },
-    { value: "KCET", label: "KCET - Karnataka Common Entrance Test" },
-    { value: "TANCET", label: "TANCET - Tamil Nadu Common Entrance Test" },
-    { value: "IPU-CET", label: "IPU CET - IP University Common Entrance Test" },
-    { value: "BIT-MCA", label: "BIT MCA" },
-    {
-      value: "UPSEE",
-      label: "UPSEE - Uttar Pradesh State Entrance Examination",
-    },
-    { value: "university-entrance", label: "University Entrance Exam" },
-    { value: "other-mca", label: "Other" },
-  ],
+  mcaEntranceExamType: [{ value: "KEAM-MCA", label: "KEAM MCA" }],
 
   // For M.Tech entrance
-  mtechEntranceExamType: [
-    { value: "GATE", label: "GATE - Graduate Aptitude Test in Engineering" },
-    { value: "KEAM-MTech", label: "KEAM M.Tech" },
-    {
-      value: "PGECET",
-      label: "PGECET - Post Graduate Engineering Common Entrance Test",
-    },
-    { value: "TANCET", label: "TANCET - Tamil Nadu Common Entrance Test" },
-    { value: "Karnataka-PGCET", label: "Karnataka PGCET" },
-    {
-      value: "AP-PGECET",
-      label:
-        "AP PGECET - Andhra Pradesh Post Graduate Engineering Common Entrance Test",
-    },
-    {
-      value: "TS-PGECET",
-      label:
-        "TS PGECET - Telangana State Post Graduate Engineering Common Entrance Test",
-    },
-    { value: "OJEE", label: "OJEE - Odisha Joint Entrance Examination" },
-    { value: "university-entrance", label: "University Entrance Exam" },
-    { value: "direct", label: "Direct Admission (Based on B.Tech marks)" },
-    { value: "other-mtech", label: "Other" },
-  ],
+  mtechEntranceExamType: [{ value: "KEAM-MTech", label: "KEAM M.Tech" }],
 
   // Kept for backward compatibility - remove these if not used elsewhere
   qualifyingExamBTech: [

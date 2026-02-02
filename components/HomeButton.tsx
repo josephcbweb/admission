@@ -1,30 +1,27 @@
 "use client";
-import { motion, scale } from "motion/react";
+import { motion } from "motion/react";
 import Link from "next/link";
 import React, { useState } from "react";
+import { FaArrowRight } from "react-icons/fa6";
 
 const HomeButton = () => {
-  const [isHovered, setIsHovered] = useState(false);
   return (
-    <div className="">
-      <Link href={"form"}>
-        <motion.button
-          animate={isHovered ? { scale: 1.05, color: "#8C8DEC" } : { scale: 1 }}
-          onHoverStart={() => setIsHovered(true)}
-          onHoverEnd={() => setIsHovered(false)}
-          whileTap={{ scale: 0.9 }}
-          transition={{
-            duration: 0.3,
-            ease: "easeInOut",
-            type: "spring",
-            stiffness: 100,
-          }}
-          className="rounded-full px-4 py-2 text-primaryAccent text-2xl border-2 cursor-pointer"
-        >
-          Admission Form
-        </motion.button>
-      </Link>
-    </div>
+    <Link href={"form"}>
+      <motion.button
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
+        className="
+          relative inline-flex items-center justify-center gap-3 px-8 py-4 
+          text-lg font-bold text-black bg-[#ccff00] rounded-full 
+          shadow-[0_0_20px_rgba(204,255,0,0.4)]
+          hover:shadow-[0_0_30px_rgba(204,255,0,0.6)]
+          transition-all duration-300
+        "
+      >
+        <span className="relative z-10">Apply For Admission</span>
+        <FaArrowRight className="relative z-10" />
+      </motion.button>
+    </Link>
   );
 };
 

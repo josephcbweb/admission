@@ -202,27 +202,27 @@ export async function POST(req: Request) {
             // Section 2: Contact Information
             createSectionHeader("2. CONTACT INFORMATION"),
             createFormTable([
-              ["Email Address", formData.email || ""]),
-              ["Mobile Number", formData.mobile || ""]),
-              ["Alternate Mobile Number", formData.alternateMobile || ""]),
+              ["Email Address", formData.email || ""],
+              ["Mobile Number", formData.mobile || ""],
+              ["Alternate Mobile Number", formData.alternateMobile || ""],
             ]),
 
             // Section 3: Permanent Address
             createSectionHeader("3. PERMANENT ADDRESS"),
             createFormTable([
-              ["Address", formData.permanentAddress || ""]),
-              ["City/Town", formData.permanentCity || ""]),
-              ["State", formData.permanentState || ""]),
-              ["PIN Code", formData.permanentPincode || ""]),
+              ["Address", formData.permanentAddress || ""],
+              ["City/Town", formData.permanentCity || ""],
+              ["State", formData.permanentState || ""],
+              ["PIN Code", formData.permanentPincode || ""],
             ]),
 
             // Section 4: Current Address
             createSectionHeader("4. CURRENT/CORRESPONDENCE ADDRESS"),
             createFormTable([
-              ["Address", formData.currentAddress || ""]),
-              ["City/Town", formData.currentCity || ""]),
-              ["State", formData.currentState || ""]),
-              ["PIN Code", formData.currentPincode || ""]),
+              ["Address", formData.currentAddress || ""],
+              ["City/Town", formData.currentCity || ""],
+              ["State", formData.currentState || ""],
+              ["PIN Code", formData.currentPincode || ""],
             ]),
 
             // Section 5: Parent/Guardian Information
@@ -238,9 +238,9 @@ export async function POST(req: Request) {
               spacing: { before: 150, after: 100 },
             }),
             createFormTable([
-              ["Father's Name", formData.fatherName || ""]),
-              ["Occupation", formData.fatherOccupation || ""]),
-              ["Mobile Number", formData.fatherMobile || ""]),
+              ["Father's Name", formData.fatherName || ""],
+              ["Occupation", formData.fatherOccupation || ""],
+              ["Mobile Number", formData.fatherMobile || ""],
             ]),
 
             new Paragraph({
@@ -254,9 +254,9 @@ export async function POST(req: Request) {
               spacing: { before: 200, after: 100 },
             }),
             createFormTable([
-              ["Mother's Name", formData.motherName || ""]),
-              ["Occupation", formData.motherOccupation || ""]),
-              ["Mobile Number", formData.motherMobile || ""]),
+              ["Mother's Name", formData.motherName || ""],
+              ["Occupation", formData.motherOccupation || ""],
+              ["Mobile Number", formData.motherMobile || ""],
             ]),
 
             new Paragraph({
@@ -270,40 +270,55 @@ export async function POST(req: Request) {
               spacing: { before: 200, after: 100 },
             }),
             createFormTable([
-              ["Guardian's Name", formData.guardianName || ""]),
-              ["Relationship", formData.guardianRelationship || ""]),
+              ["Guardian's Name", formData.guardianName || ""],
+              ["Relationship", formData.guardianRelationship || ""],
             ]),
 
             // Section 6: Educational Qualifications
             createSectionHeader("6. EDUCATIONAL QUALIFICATIONS"),
             createFormTable([
-              ["Qualifying Examination", formData.qualifyingExam || ""]),
-              ["Board/University", formData.qualifyingBoard || ""]),
-              ["Institution Name", formData.qualifyingSchool || ""]),
-              ["Year of Passing", formData.qualifyingYear || ""]),
-              ["Maximum Marks", formData.qualifyingMaxMarks || ""]),
-              ["Marks Obtained", formData.qualifyingObtainedMarks || ""]),
-              ["Percentage/CGPA", formData.qualifyingPercentage || ""]),
+              ["Qualifying Examination", formData.qualifyingExam || ""],
+              ["Board/University", formData.qualifyingBoard || ""],
+              ["Institution Name", formData.qualifyingSchool || ""],
+              ["Year of Passing", formData.qualifyingYear || ""],
+              ["Maximum Marks", formData.qualifyingMaxMarks || ""],
+              ["Marks Obtained", formData.qualifyingObtainedMarks || ""],
+              ["Percentage/CGPA", formData.qualifyingPercentage || ""],
             ]),
 
             // Section 7: Entrance Examination Details
             createSectionHeader("7. ENTRANCE EXAMINATION DETAILS"),
             createFormTable([
-              ["Entrance Exam Name", formData.entranceExamType || ""]),
-              ["Roll Number", formData.entranceRollNumber || ""]),
-              ["Rank Obtained", formData.entranceRank || ""]),
-              ["Score/Percentile", formData.entranceScore || ""]),
-              ["Branch Allotted", formData.allottedBranch || ""]),
-              ["Admission Quota", formData.admissionQuota || ""]),
+              ["Entrance Exam Name", formData.entranceExamType || ""],
+              [
+                "Roll Number",
+                formData.entranceRollNumber ||
+                  formData.entranceExamRollNumber ||
+                  "",
+              ],
+              ["Rank Obtained", formData.entranceRank || ""],
+              [
+                "Score/Percentile",
+                formData.entranceScore || formData.entranceExamScore || "",
+              ],
+              [
+                "Preferred Department/Branch",
+                formData.preferredDepartmentName ||
+                  formData.preferredDepartment ||
+                  "",
+              ],
+              ["Admission Quota", formData.admissionQuota || ""],
             ]),
 
             // Section 8: Bank Details
-            createSectionHeader("8. BANK ACCOUNT DETAILS (For Scholarship/Refund)"),
+            createSectionHeader(
+              "8. BANK ACCOUNT DETAILS (For Scholarship/Refund)",
+            ),
             createFormTable([
-              ["Bank Name", formData.bankName || ""]),
-              ["Branch Name", formData.bankBranch || ""]),
-              ["Account Number", formData.accountNumber || ""]),
-              ["IFSC Code", formData.ifscCode || ""]),
+              ["Bank Name", formData.bankName || ""],
+              ["Branch Name", formData.bankBranch || ""],
+              ["Account Number", formData.accountNumber || ""],
+              ["IFSC Code", formData.ifscCode || ""],
             ]),
 
             // Section 9: Services Required
@@ -524,7 +539,7 @@ export async function POST(req: Request) {
         message: "Failed to generate document",
         error: error instanceof Error ? error.message : "Unknown error",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -605,7 +620,7 @@ function createHeaderInfoBox(data: string[][]) {
               width: { size: 60, type: WidthType.PERCENTAGE },
             }),
           ],
-        })
+        }),
     ),
   });
 }
@@ -668,7 +683,7 @@ function createFormTable(data: string[][]) {
               },
             }),
           ],
-        })
+        }),
     ),
   });
 }
@@ -733,7 +748,7 @@ function createCheckboxTable(data: [string, boolean | undefined][]) {
               },
             }),
           ],
-        })
+        }),
     ),
   });
 }

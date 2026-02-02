@@ -7,3 +7,13 @@
   --color-primary: #71a9f7;
   --color-primaryAccent: #124e78;
 }
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+

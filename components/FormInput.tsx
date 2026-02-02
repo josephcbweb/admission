@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
+import { FiSearch } from "react-icons/fi";
 import { FormFieldConfig, dropdownOptions } from "@/utilities/form-data-v2";
+import CasteHelperModal from "./CasteHelperModal";
 
 interface FormInputProps extends FormFieldConfig {
   onChange: (
@@ -15,8 +17,9 @@ interface FormInputProps extends FormFieldConfig {
 const FormInput = (props: FormInputProps) => {
   const [isError, setIsError] = useState(false);
   const [showTooltip, setShowTooltip] = useState(false);
+  const [isCasteModalOpen, setIsCasteModalOpen] = useState(false);
   const tooltipRef = React.useRef<HTMLDivElement>(null);
-  const { label, onChange, id, errorMessage, info, ...inputProps } = props;
+  const { label, onChange, id, errorMessage, info, options, ...inputProps } = props;
 
   // Close tooltip when clicking outside
   React.useEffect(() => {
@@ -62,24 +65,27 @@ const FormInput = (props: FormInputProps) => {
 
   const inputVariants = {
     focus: {
-      borderColor: "#4f46e5",
+      borderColor: "#000000",
+      backgroundColor: "#ffffff",
+      scale: 1.01,
       transition: { duration: 0.2 },
     },
     error: {
       borderColor: "#ef4444",
+      backgroundColor: "#fef2f2",
       transition: { duration: 0.2 },
     },
   };
 
-  const commonClasses = `w-full px-3 py-2.5 text-sm rounded-md border focus:outline-none transition-colors duration-200 ${
-    isError
-      ? "border-red-400 bg-red-50"
-      : "border-gray-300 bg-white focus:border-primaryAccent"
-  }`;
+  const commonClasses = `w-full px-4 py-3 text-sm rounded-xl border-2 font-medium tracking-wide transition-all duration-200 ${isError
+    ? "border-red-400 bg-red-50 text-red-900 placeholder:text-red-300"
+    : "border-gray-200 bg-white text-gray-900 placeholder:text-gray-400 hover:border-gray-300 focus:outline-none"
+    }`;
 
   const renderInputField = () => {
     // Get options for select fields
     const getSelectOptions = (): Array<{ value: string; label: string }> => {
+      if (options) return options;
       const fieldName = inputProps.name as keyof typeof dropdownOptions;
       return (dropdownOptions[fieldName] || []) as Array<{
         value: string;
@@ -95,7 +101,7 @@ const FormInput = (props: FormInputProps) => {
             name={inputProps.name}
             onChange={onChange}
             onBlur={handleBlur}
-            className={`${commonClasses} appearance-none bg-[url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiM2NjY2NjYiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48cGF0aCBkPSJtNiA5IDYgNiA2LTYiLz48L3N2Zz4=")] bg-no-repeat bg-[center_right_0.75rem] pr-9 cursor-pointer`}
+            className={`${commonClasses} appearance-none bg-[url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiMzNzQxNTEiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48cGF0aCBkPSJtNiA5IDYgNiA2LTYiLz48L3N2Zz4=")] bg-no-repeat bg-[center_right_1rem] pr-10 cursor-pointer`}
             value={String(inputProps.value || "")}
             whileFocus="focus"
             variants={inputVariants}
@@ -117,7 +123,7 @@ const FormInput = (props: FormInputProps) => {
             onChange={onChange}
             onBlur={handleBlur}
             placeholder={inputProps.placeholder}
-            className={`${commonClasses} resize-y min-h-24 max-h-48`}
+            className={`${commonClasses} resize-y min-h-32`}
             value={String(inputProps.value || "")}
             whileFocus="focus"
             variants={inputVariants}
@@ -126,7 +132,7 @@ const FormInput = (props: FormInputProps) => {
 
       case "checkbox":
         return (
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3 p-4 rounded-xl bg-white border-2 border-gray-200 transition-colors hover:border-gray-300">
             <input
               type="checkbox"
               id={id.toString()}
@@ -141,17 +147,17 @@ const FormInput = (props: FormInputProps) => {
                 } as any;
                 onChange(syntheticEvent);
               }}
-              className="w-4 h-4 rounded border-gray-300 text-primaryAccent focus:ring-1 focus:ring-primaryAccent cursor-pointer"
+              className="w-5 h-5 rounded border-gray-300 text-black focus:ring-0 focus:ring-offset-0 cursor-pointer accent-black"
               checked={Boolean(
                 inputProps.value === "true" ||
-                  inputProps.value === true ||
-                  inputProps.value === "on" ||
-                  inputProps.value === 1
+                inputProps.value === true ||
+                inputProps.value === "on" ||
+                inputProps.value === 1
               )}
             />
             <label
               htmlFor={id.toString()}
-              className="text-sm text-gray-700 cursor-pointer"
+              className="text-sm font-medium text-gray-900 cursor-pointer select-none"
             >
               {label}
             </label>
@@ -188,20 +194,34 @@ const FormInput = (props: FormInputProps) => {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.25 }}
     >
-      <div className="flex items-center gap-2 mb-1.5">
-        <label htmlFor={id.toString()} className="text-sm text-gray-700">
+      <div className="flex items-center gap-2 mb-2">
+        <label
+          htmlFor={id.toString()}
+          className="text-[11px] uppercase tracking-widest font-mono font-bold text-gray-600 flex items-center"
+        >
           {label}
           {inputProps.required && (
-            <span className="text-red-500 ml-0.5">*</span>
+            <span className="text-red-600 ml-1 text-base leading-3">*</span>
           )}
         </label>
+
+        {/* Helper Button for Category Field */}
+        {inputProps.name === "category" && (
+          <button
+            type="button"
+            onClick={() => setIsCasteModalOpen(true)}
+            className="flex items-center gap-1 text-[9px] font-bold text-blue-600 hover:text-blue-800 bg-blue-50 hover:bg-blue-100 px-2 py-0.5 rounded-full transition-colors cursor-pointer ml-2 border border-blue-100"
+          >
+            <FiSearch size={10} /> Find Category
+          </button>
+        )}
 
         {info && (
           <div className="relative" ref={tooltipRef}>
             <button
               type="button"
               onClick={() => setShowTooltip(!showTooltip)}
-              className="text-gray-400 hover:text-gray-600 focus:outline-none transition-colors"
+              className="text-gray-400 hover:text-gray-700 focus:outline-none transition-colors"
               aria-label="Information"
             >
               <svg
@@ -221,13 +241,13 @@ const FormInput = (props: FormInputProps) => {
 
             {showTooltip && (
               <motion.div
-                className="absolute left-0 top-5 z-50 w-56 p-2.5 bg-gray-800 text-white rounded-md shadow-lg text-xs"
+                className="absolute left-0 top-5 z-50 w-56 p-3 bg-gray-900 text-white rounded-xl shadow-xl text-xs font-medium leading-relaxed"
                 initial={{ opacity: 0, y: -5 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -5 }}
               >
-                <p className="leading-relaxed">{info}</p>
-                <div className="absolute -top-1 left-4 w-2 h-2 bg-gray-800 transform rotate-45"></div>
+                <p>{info}</p>
+                <div className="absolute -top-1 left-4 w-2 h-2 bg-gray-900 transform rotate-45"></div>
               </motion.div>
             )}
           </div>
@@ -244,6 +264,14 @@ const FormInput = (props: FormInputProps) => {
         >
           {errorMessage}
         </motion.p>
+      )}
+
+      {/* Render Modal if Category */}
+      {inputProps.name === "category" && (
+        <CasteHelperModal
+          isOpen={isCasteModalOpen}
+          onClose={() => setIsCasteModalOpen(false)}
+        />
       )}
     </motion.div>
   );
