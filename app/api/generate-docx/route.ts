@@ -81,7 +81,7 @@ export async function POST(req: Request) {
               },
               rows: [
                 new TableRow({
-                  height: { value: 100 },
+                  height: { value: 100, rule: "exact" },
                   children: [
                     new TableCell({
                       children: [new Paragraph("")],
@@ -293,8 +293,8 @@ export async function POST(req: Request) {
               [
                 "Roll Number",
                 formData.entranceRollNumber ||
-                  formData.entranceExamRollNumber ||
-                  "",
+                formData.entranceExamRollNumber ||
+                "",
               ],
               ["Rank Obtained", formData.entranceRank || ""],
               [
@@ -304,8 +304,8 @@ export async function POST(req: Request) {
               [
                 "Preferred Department/Branch",
                 formData.preferredDepartmentName ||
-                  formData.preferredDepartment ||
-                  "",
+                formData.preferredDepartment ||
+                "",
               ],
               ["Admission Quota", formData.admissionQuota || ""],
             ]),
@@ -350,7 +350,7 @@ export async function POST(req: Request) {
                   size: 22,
                 }),
               ],
-              alignment: AlignmentType.JUSTIFY,
+              alignment: AlignmentType.JUSTIFIED,
               spacing: { after: 400 },
             }),
 
@@ -522,13 +522,12 @@ export async function POST(req: Request) {
 
     const buffer = await Packer.toBuffer(doc);
 
-    return new NextResponse(buffer, {
+    return new NextResponse(buffer as any, {
       headers: {
         "Content-Type":
           "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-        "Content-Disposition": `attachment; filename="CEC_Admission_Form_${
-          formData.admissionNumber || "Application"
-        }.docx"`,
+        "Content-Disposition": `attachment; filename="CEC_Admission_Form_${formData.admissionNumber || "Application"
+          }.docx"`,
       },
     });
   } catch (error) {
