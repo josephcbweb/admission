@@ -125,7 +125,7 @@ export const personalInfoFields: FormFieldConfig[] = [
     id: 12,
     name: "preferredDepartment",
     type: "select",
-    label: "Preferred Department/Branch",
+    label: "Department / Branch",
     required: true,
     errorMessage: "Please select your preferred department.",
     info: "Select the department/branch you wish to join. This will be considered during class assignment after approval.",
