@@ -4,7 +4,7 @@ import { motion } from "motion/react";
 import FormInput from "@/components/FormInput";
 import AdmissionCheck from "@/components/AdmissionCheck";
 import SuccessModal from "@/components/SuccessModal";
-import { getFieldsForProgram } from "@/utilities/form-data-v2";
+import { getFieldsForProgram, dropdownOptions } from "@/utilities/form-data-v2";
 import { FiArrowLeft, FiArrowRight, FiAlertCircle } from "react-icons/fi";
 
 type ProgramType = "btech" | "mca" | "mtech";
@@ -73,6 +73,22 @@ const AdmissionFormPage = () => {
     // Don't automatically transition - let user select program
   }, []);
 
+  // Warning on page reload/close if form has data
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (currentStep === "form" && Object.keys(formValues).length > 0) {
+        e.preventDefault();
+        e.returnValue = ""; // Required for Chrome
+      }
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, [currentStep, formValues]);
+
   const handleProgramSelect = (program: string) => {
     setSelectedProgram(program as ProgramType);
     setSelectedAdmissionType("regular");
@@ -94,6 +110,9 @@ const AdmissionFormPage = () => {
     >,
   ) => {
     const { name, value, type } = e.target;
+    // DEBUG: Log every input change to track if "phone" is updating
+    console.log(`[DEBUG] Input Change: name='${name}', value='${value}'`);
+
     const actualValue =
       type === "checkbox" ? (e.target as HTMLInputElement).checked : value;
 
@@ -109,29 +128,115 @@ const AdmissionFormPage = () => {
         [name]: "",
       }));
     }
+
+    // Special handling for Religion Change
+    if (name === "religion") {
+      const selectedReligion = actualValue as string;
+      const casteOptions = dropdownOptions.casteData[selectedReligion];
+
+      if (selectedReligion === "Other") {
+        setFormValues((prev) => ({
+          ...prev,
+          [name]: actualValue,
+          caste: "Other", // Auto-select 'Other' for caste
+        }));
+      } else if (
+        casteOptions?.length === 1 &&
+        casteOptions[0].value === "NA"
+      ) {
+        setFormValues((prev) => ({
+          ...prev,
+          [name]: actualValue,
+          caste: "NA", // Auto-select 'NA'
+        }));
+      }
+    }
   };
 
   const validateForm = (): boolean => {
     const errors: { [key: string]: string } = {};
     const fields = getFieldsForProgram(selectedProgram!, selectedAdmissionType);
 
+    console.log(`Starting validation for ${selectedProgram} - ${selectedAdmissionType}`);
+    console.group("Field Validation Details");
+
     fields.forEach((field) => {
+      // Skip validation if field is not for this admission type
+      if (
+        field.admissionTypes &&
+        !field.admissionTypes.includes(selectedAdmissionType)
+      ) {
+        // console.log(`Skipping ${field.name} (Admission Type Mismatch)`);
+        return;
+      }
+
       const value = formValues[field.name];
 
-      if (
-        field.required &&
-        (!value || (typeof value === "string" && !value.trim()))
-      ) {
+      // Check dependsOn visibility
+      if (field.dependsOn) {
+        const dependentValue = formValues[field.dependsOn];
+        // If dependsOnValue is defined, check strict equality
+        if (field.dependsOnValue !== undefined) {
+          if (dependentValue !== field.dependsOnValue) {
+            // console.log(`Skipping ${field.name} (Dependency not met: ${field.dependsOn} != ${field.dependsOnValue})`);
+            return;
+          }
+        } else {
+          // If no specific value required, just check if truthy (standard dependency)
+          if (!dependentValue) {
+            // console.log(`Skipping ${field.name} (Dependency not met: ${field.dependsOn} is falsy)`);
+            return;
+          }
+        }
+      }
+
+      // Log the field being validated
+      // console.log(`Validating ${field.name}:`, { required: field.required, value });
+
+      if (field.required && (!value || (typeof value === "string" && !value.trim()))) {
+        console.warn(`Validation Error: ${field.name} is required. Value: "${value}"`);
         errors[field.name] = field.errorMessage || `${field.label} is required`;
       }
 
       if (field.pattern && value && typeof value === "string") {
-        if (!new RegExp(field.pattern).test(value)) {
-          errors[field.name] =
-            field.errorMessage || `${field.label} format is invalid`;
+        const trimmedValue = value.trim();
+        // DEBUG: Log the exact pattern and value being tested
+        if (field.name.includes("Pincode")) {
+          console.log(`[DEBUG] Testing ${field.name}: value='${trimmedValue}', pattern='${field.pattern}'`);
+        }
+
+        if (!new RegExp(field.pattern).test(trimmedValue)) {
+          console.warn(`Validation Error: ${field.name} pattern mismatch. Value: "${value}" (Trimmed: "${trimmedValue}")`);
+          errors[field.name] = field.errorMessage || `${field.label} format is invalid`;
+        }
+      }
+
+      // Age Validation
+      if (field.minAge && value && typeof value === "string") {
+        const birthDate = new Date(value);
+        const today = new Date();
+        let age = today.getFullYear() - birthDate.getFullYear();
+        const m = today.getMonth() - birthDate.getMonth();
+
+        if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+          age--;
+        }
+
+        if (age < field.minAge) {
+          console.warn(`Validation Error: ${field.name} age too low (${age}).`);
+          errors[field.name] = `You must be at least ${field.minAge} years old.`;
         }
       }
     });
+
+    console.groupEnd();
+
+    if (Object.keys(errors).length > 0) {
+      console.error("Validation Failed Keys:", Object.keys(errors));
+      console.error("Validation Failed Object:", JSON.stringify(errors, null, 2));
+    } else {
+      console.log("Validation Successful");
+    }
 
     setValidationErrors(errors);
     return Object.keys(errors).length === 0;
@@ -141,7 +246,9 @@ const AdmissionFormPage = () => {
     e.preventDefault();
 
     if (!validateForm()) {
-      setSubmitError("Please fix the errors above before submitting.");
+      const errorFields = Object.keys(validationErrors).join(", ");
+      setSubmitError(`Please fix errors in: ${errorFields}`);
+
       // Scroll to first error field
       const firstErrorField = document.querySelector(".border-red-500");
       if (firstErrorField) {
@@ -174,7 +281,7 @@ const AdmissionFormPage = () => {
         if (response.status === 409) {
           setSubmitError(
             data.message ||
-              "A student with this email or Aadhaar already exists.",
+            "A student with this email or Aadhaar already exists.",
           );
         } else {
           setSubmitError(
@@ -260,6 +367,13 @@ const AdmissionFormPage = () => {
     label: `${dept.name} (${dept.department_code})`,
   }));
 
+  // Caste options based on religion
+  const currentReligion = formValues.religion as string;
+  const casteOptions =
+    currentReligion && dropdownOptions.casteData[currentReligion]
+      ? dropdownOptions.casteData[currentReligion]
+      : [];
+
   // Step: Admission Check
   if (currentStep === "check") {
     return (
@@ -274,16 +388,28 @@ const AdmissionFormPage = () => {
   if (currentStep === "form" && selectedProgram) {
     const groupedFields = {
       personal: fields.filter((f) =>
-        [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13].includes(f.id),
+        [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 999].includes(f.id),
       ),
       parent: fields.filter((f) =>
-        [20, 21, 22, 23, 24, 25, 26, 27].includes(f.id),
+        [20, 21, 22, 23, 24, 25, 26, 27, 210, 230].includes(f.id),
       ),
       address: fields.filter((f) =>
-        [40, 41, 42, 43, 44, 45, 46, 47].includes(f.id),
+        [40, 41, 42, 43, 44, 45, 46, 47, 460].includes(f.id),
       ),
-      education: fields.filter((f) => f.id >= 60 && f.id < 90),
-      entrance: fields.filter((f) => f.id >= 90 && f.id < 150),
+      education: fields.filter(
+        (f) =>
+          (f.id >= 60 && f.id < 90) || // Common + BTech + TC
+          (f.id >= 100 && f.id < 110) || // MCA Education
+          (f.id >= 120 && f.id < 130) || // MTech Education
+          [601, 602, 603].includes(f.id), // Special Qualifying Exams
+      ),
+      entrance: fields.filter(
+        (f) =>
+          (f.id >= 90 && f.id < 100) || // BTech Entrance
+          (f.id >= 110 && f.id < 120) || // MCA Entrance
+          (f.id >= 130 && f.id < 140) || // MTech Entrance
+          (f.id >= 170 && f.id < 180), // NRI Entrance
+      ),
       bank: fields.filter((f) => [150, 151, 152, 153].includes(f.id)),
       additional: fields.filter((f) => [160, 161, 162, 163].includes(f.id)),
     };
@@ -383,11 +509,10 @@ const AdmissionFormPage = () => {
                   onClick={() =>
                     handleAdmissionTypeChange(type as AdmissionTypeType)
                   }
-                  className={`px-6 py-4 rounded-xl text-sm font-medium transition-all duration-200 cursor-pointer border-2 ${
-                    selectedAdmissionType === type
-                      ? "bg-[#ccff00] border-[#ccff00] text-black shadow-lg"
-                      : "bg-gray-50 border-transparent text-gray-600 hover:bg-white hover:border-gray-200 hover:text-gray-900"
-                  }`}
+                  className={`px-6 py-4 rounded-xl text-sm font-medium transition-all duration-200 cursor-pointer border-2 ${selectedAdmissionType === type
+                    ? "bg-[#ccff00] border-[#ccff00] text-black shadow-lg"
+                    : "bg-gray-50 border-transparent text-gray-600 hover:bg-white hover:border-gray-200 hover:text-gray-900"
+                    }`}
                 >
                   {label}
                 </button>
@@ -438,6 +563,7 @@ const AdmissionFormPage = () => {
                   validationErrors={validationErrors}
                   dynamicOptions={{
                     preferredDepartment: departmentOptions,
+                    caste: casteOptions,
                   }}
                 />
               )}
@@ -617,6 +743,39 @@ const FormSection: React.FC<FormSectionProps> = ({
       )}
     </div>
 
+    {/* Validation Errors Summary */}
+    {(() => {
+      const sectionErrors = fields
+        .map((field) => ({
+          name: field.name,
+          label: field.label,
+          error: validationErrors[field.name],
+        }))
+        .filter((item) => item.error);
+
+      if (sectionErrors.length === 0) return null;
+
+      return (
+        <motion.div
+          initial={{ opacity: 0, height: 0 }}
+          animate={{ opacity: 1, height: "auto" }}
+          className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg"
+        >
+          <h4 className="flex items-center gap-2 text-red-800 font-bold mb-2">
+            <FiAlertCircle />
+            Please fix the following errors:
+          </h4>
+          <ul className="list-disc list-inside text-sm text-red-700 space-y-1">
+            {sectionErrors.map((item) => (
+              <li key={item.name}>
+                <span className="font-medium">{item.label}:</span> {item.error}
+              </li>
+            ))}
+          </ul>
+        </motion.div>
+      );
+    })()}
+
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
       {fields
         .filter((field) => {
@@ -643,7 +802,15 @@ const FormSection: React.FC<FormSectionProps> = ({
               options={dynamicOptions[field.name] || field.options}
               onChange={onChange}
               value={formValues[field.name] || ""}
-              errorMessage={validationErrors[field.name]}
+              errorMessage={validationErrors[field.name] || field.errorMessage}
+              isInvalid={!!validationErrors[field.name]}
+              disabled={
+                field.name === "caste" &&
+                (formValues["religion"] === "Other" ||
+                  dropdownOptions.casteData[
+                    formValues["religion"] as string
+                  ]?.[0]?.value === "NA")
+              }
             />
           </div>
         ))}

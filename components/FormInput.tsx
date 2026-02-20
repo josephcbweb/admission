@@ -12,6 +12,8 @@ interface FormInputProps extends FormFieldConfig {
   ) => void;
   props?: FormFieldConfig;
   value?: string | number | boolean;
+  isInvalid?: boolean;
+  disabled?: boolean;
 }
 
 const FormInput = (props: FormInputProps) => {
@@ -19,7 +21,10 @@ const FormInput = (props: FormInputProps) => {
   const [showTooltip, setShowTooltip] = useState(false);
   const [isCasteModalOpen, setIsCasteModalOpen] = useState(false);
   const tooltipRef = React.useRef<HTMLDivElement>(null);
-  const { label, onChange, id, errorMessage, info, options, ...inputProps } = props;
+  const { label, onChange, id, errorMessage, info, options, isInvalid, disabled, ...inputProps } = props;
+
+  // Combine local and external error state
+  const hasError = isError || isInvalid;
 
   // Close tooltip when clicking outside
   React.useEffect(() => {
@@ -45,19 +50,61 @@ const FormInput = (props: FormInputProps) => {
     >
   ) => {
     const { name, value } = e.target;
-    if (!inputProps.required) return;
 
+    // Check if required and empty
     if (inputProps.required && !value.toString().trim()) {
       setIsError(true);
       return;
     }
 
-    if (
-      inputProps.pattern &&
-      !new RegExp(inputProps.pattern).test(value.toString())
-    ) {
-      setIsError(true);
-      return;
+    // Check regex pattern if it exists and value is not empty
+    if (inputProps.pattern && value.toString().trim()) {
+      try {
+        const regex = new RegExp(inputProps.pattern);
+        if (!regex.test(value.toString())) {
+          setIsError(true);
+          return;
+        }
+      } catch (e) {
+        console.error("Invalid regex pattern:", inputProps.pattern);
+      }
+    }
+
+    // Age Validation on Blur
+    if (props.minAge && value && typeof value === 'string' && inputProps.type === 'date') {
+      const birthDate = new Date(value);
+      const today = new Date();
+      let age = today.getFullYear() - birthDate.getFullYear();
+      const m = today.getMonth() - birthDate.getMonth();
+
+      if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+        age--;
+      }
+
+      if (age < props.minAge) {
+        setIsError(true);
+        // We might want to set a specific error message, but FormInput currently toggles a boolean.
+        // The error message from props will be shown.
+        return;
+      }
+    }
+
+    // Future Date/Year Validation
+    if (inputProps.max === "current" && value) {
+      const currentYear = new Date().getFullYear();
+      const inputYear = Number(value);
+
+      // If it's a 4-digit year number
+      if (!isNaN(inputYear) && inputYear > currentYear && value.toString().length === 4) {
+        setIsError(true);
+        return;
+      }
+
+      // If it's a date string
+      if (inputProps.type === 'date' && new Date(value) > new Date()) {
+        setIsError(true);
+        return;
+      }
     }
 
     setIsError(false);
@@ -77,10 +124,27 @@ const FormInput = (props: FormInputProps) => {
     },
   };
 
-  const commonClasses = `w-full px-4 py-3 text-sm rounded-xl border-2 font-medium tracking-wide transition-all duration-200 ${isError
-    ? "border-red-400 bg-red-50 text-red-900 placeholder:text-red-300"
-    : "border-gray-200 bg-white text-gray-900 placeholder:text-gray-400 hover:border-gray-300 focus:outline-none"
+  const commonClasses = `w-full px-4 py-3 text-sm rounded-xl border-2 font-medium tracking-wide transition-all duration-200 
+    ${disabled ? "bg-gray-100 text-gray-400 border-gray-100 cursor-not-allowed" : ""}
+    ${!disabled && hasError
+      ? "border-red-400 bg-red-50 text-red-900 placeholder:text-red-300"
+      : !disabled && "border-gray-200 bg-white text-gray-900 placeholder:text-gray-400 hover:border-gray-300 focus:outline-none"
     }`;
+
+  // Calculate max date for age restriction or current date limit
+  const getMaxDate = () => {
+    if (inputProps.type === 'date') {
+      if (props.minAge) {
+        const today = new Date();
+        today.setFullYear(today.getFullYear() - props.minAge);
+        return today.toISOString().split('T')[0];
+      }
+      if (inputProps.max === "current") {
+        return new Date().toISOString().split("T")[0];
+      }
+    }
+    return undefined;
+  };
 
   const renderInputField = () => {
     // Get options for select fields
@@ -105,6 +169,7 @@ const FormInput = (props: FormInputProps) => {
             value={String(inputProps.value || "")}
             whileFocus="focus"
             variants={inputVariants}
+            disabled={disabled}
           >
             <option value="">Select {label}</option>
             {getSelectOptions().map((option) => (
@@ -180,6 +245,7 @@ const FormInput = (props: FormInputProps) => {
             placeholder={inputProps.placeholder}
             className={commonClasses}
             value={String(inputProps.value || "")}
+            max={getMaxDate()}
             whileFocus="focus"
             variants={inputVariants}
           />
@@ -256,7 +322,7 @@ const FormInput = (props: FormInputProps) => {
 
       {renderInputField()}
 
-      {isError && errorMessage && (
+      {hasError && errorMessage && (
         <motion.p
           className="mt-1.5 text-xs text-red-600"
           initial={{ opacity: 0, x: -5 }}

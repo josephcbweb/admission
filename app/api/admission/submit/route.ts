@@ -34,6 +34,8 @@ const BACKEND_URL = process.env.BACKEND_URL || "http://localhost:3000";
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
+    console.log("Proxying submission to backend:", `${BACKEND_URL}/api/admission/submit`);
+    console.log("Payload:", JSON.stringify(body, null, 2));
 
     const response = await fetch(`${BACKEND_URL}/api/admission/submit`, {
       method: "POST",
@@ -44,6 +46,8 @@ export async function POST(request: NextRequest) {
     });
 
     const data = await response.json();
+    console.log("Backend response status:", response.status);
+    console.log("Backend response data:", JSON.stringify(data, null, 2));
 
     if (!response.ok) {
       return NextResponse.json(data, { status: response.status });

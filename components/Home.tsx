@@ -3,6 +3,7 @@ import React, { useRef, useState, useEffect } from "react";
 import HomeButton from "./HomeButton";
 import { motion, useScroll, useTransform, useSpring, useMotionValue } from "framer-motion";
 import { FaArrowRight, FaRankingStar, FaGlobe, FaBolt } from "react-icons/fa6";
+import { admissionStats } from "../utilities/stats-data";
 
 // --- Components ---
 
@@ -81,6 +82,35 @@ const CustomCursor = () => {
 const Home = () => {
   const { scrollYProgress } = useScroll();
   const y = useTransform(scrollYProgress, [0, 1], [0, -50]);
+  const [isAdmissionOpen, setIsAdmissionOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const currentYear = new Date().getFullYear();
+
+  useEffect(() => {
+    const fetchStatus = async () => {
+      try {
+        // Small delay to prevent flickering if response is too fast
+        const minLoadTime = new Promise(resolve => setTimeout(resolve, 800));
+        const request = fetch("/api/admission/status");
+
+        const [_, res] = await Promise.all([minLoadTime, request]);
+
+        if (res.ok) {
+          const data = await res.json();
+          // Check if any program is open
+          const isOpen = Object.values(data.admissionsOpen || {}).some(
+            (program: any) => program.open
+          );
+          setIsAdmissionOpen(isOpen);
+        }
+      } catch (error) {
+        console.error("Failed to fetch admission status", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchStatus();
+  }, []);
 
   return (
     <div className="relative min-h-screen bg-[#fbfbf6] text-[#1a1917] selection:bg-[#ccff00] selection:text-black font-sans">
@@ -102,7 +132,10 @@ const Home = () => {
           transition={{ duration: 0.8 }}
         >
           <div>
-            <MicroLabel>College of Engineering Cherthala</MicroLabel>
+            <div className="font-mono text-sm md:text-base uppercase tracking-widest opacity-80 mb-2 flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-current" />
+              College of Engineering Cherthala
+            </div>
             <h1 className="text-7xl md:text-[8rem] leading-[0.85] font-serif tracking-tight -ml-1 md:-ml-2">
               Future <br />
               <span className="italic font-light opacity-50">Proof.</span>
@@ -114,7 +147,7 @@ const Home = () => {
                 <path id="curve" d="M 50, 50 m -37, 0 a 37,37 0 1,1 74,0 a 37,37 0 1,1 -74,0" fill="transparent" />
                 <text className="text-[14px] font-mono font-bold uppercase tracking-widest">
                   <textPath xlinkHref="#curve">
-                    Admissions Open • 2025 •
+                    Admissions Open • {currentYear} •
                   </textPath>
                 </text>
               </svg>
@@ -141,9 +174,11 @@ const Home = () => {
               </p>
 
               <div className="flex flex-wrap gap-4">
-                <HomeButton /> {/* We will need to update HomeButton style too, or wrap it */}
-                <button className="px-8 py-4 rounded-full border border-black/10 hover:bg-white transition-colors font-medium">
-                  Explore Programs
+                <HomeButton isAdmissionOpen={isAdmissionOpen} isLoading={isLoading} />
+                <button
+                  onClick={() => window.open("https://www.cectl.ac.in/", "_blank")}
+                  className="px-8 py-4 rounded-full border border-black/10 hover:bg-white transition-colors font-medium">
+                  Official Site
                 </button>
               </div>
             </div>
@@ -155,9 +190,9 @@ const Home = () => {
             <div>
               <MicroLabel className="text-[#ccff00]">Rankings</MicroLabel>
               <div className="text-[8rem] font-serif leading-none tracking-tighter text-[#ccff00]">
-                #10
+                {admissionStats.collegeRank}
               </div>
-              <p className="text-xl opacity-80 mt-2">Top Engineering College in Kerala</p>
+              <p className="text-xl opacity-80 mt-2">{admissionStats.rankDescription}</p>
             </div>
 
             <div className="space-y-4 pt-12">
@@ -166,24 +201,27 @@ const Home = () => {
                   <span className="text-sm font-mono opacity-60">PLACEMENTS</span>
                   <FaBolt className="text-[#ccff00]" />
                 </div>
-                <div className="text-3xl font-medium">94%</div>
-              </div>
-              <div className="p-4 rounded-2xl bg-white/10 backdrop-blur-sm border border-white/5">
-                <div className="flex justify-between items-center mb-2">
-                  <span className="text-sm font-mono opacity-60">ALUMNI</span>
-                  <FaRankingStar className="text-[#ccff00]" />
-                </div>
-                <div className="text-3xl font-medium">5000+</div>
+                <div className="text-3xl font-medium">{admissionStats.placementPercentage}</div>
               </div>
             </div>
           </BentoCard>
 
           {/* 3. Bottom Row Cards (Grid items) */}
-          <BentoCard className="md:col-span-3 lg:col-span-4 bg-[#ccff00] text-black" delay={0.3}>
+          <BentoCard
+            className={`md:col-span-3 lg:col-span-4 ${isAdmissionOpen ? "bg-[#ccff00] text-black" : "bg-[#e5e5e5] text-black/60"}`}
+            delay={0.3}
+          >
             <div className="h-full flex flex-col justify-center items-center text-center">
-              <div className="font-serif text-5xl mb-2">2025</div>
-              <div className="font-mono text-sm uppercase tracking-widest border-t border-black pt-2 w-1/2 mx-auto">
-                Applications Live
+              <div className="font-serif text-5xl mb-2">{currentYear}</div>
+              <div className="font-mono text-sm uppercase tracking-widest border-t border-current pt-2 w-3/4 mx-auto leading-relaxed">
+                {isLoading ? (
+                  <div className="flex items-center justify-center gap-2 animate-pulse">
+                    <span className="w-2 h-2 bg-current rounded-full" />
+                    <span>CHECKING STATUS...</span>
+                  </div>
+                ) : (
+                  isAdmissionOpen ? "Applications Live" : "Admissions are taking a short nap. Check back soon!"
+                )}
               </div>
             </div>
           </BentoCard>

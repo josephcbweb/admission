@@ -118,8 +118,13 @@ export async function POST(req: Request) {
             createHeaderInfoBox([
               ["Academic Year", "2025-2026"],
               ["Admission Number", formData.admissionNumber || "N/A"],
-              ["Program", formData.program || "N/A"],
-              ["Admission Category", formData.admissionType || "N/A"],
+              ["Program", (formData.program || "N/A").toUpperCase()],
+              [
+                "Admission Category",
+                formData.admissionType === "nri"
+                  ? "NRI"
+                  : (formData.admissionType || "N/A").toUpperCase(),
+              ],
             ]),
 
             // Photo and Signature Placeholder
@@ -195,15 +200,17 @@ export async function POST(req: Request) {
               ["Blood Group", formData.bloodGroup || ""],
               ["Nationality", formData.nationality || ""],
               ["Religion", formData.religion || ""],
+              ["Caste", formData.caste || ""],
               ["Category", formData.category || ""],
-              ["Aadhaar Number", formData.aadhaarNumber || ""],
+              ["Mother Tongue", formData.motherTongue || ""],
+              ["Aadhaar Number", formData.aadhaar || formData.aadhaarNumber || ""],
             ]),
 
             // Section 2: Contact Information
             createSectionHeader("2. CONTACT INFORMATION"),
             createFormTable([
               ["Email Address", formData.email || ""],
-              ["Mobile Number", formData.mobile || ""],
+              ["Mobile Number", formData.phone || formData.mobile || ""],
               ["Alternate Mobile Number", formData.alternateMobile || ""],
             ]),
 
@@ -219,10 +226,10 @@ export async function POST(req: Request) {
             // Section 4: Current Address
             createSectionHeader("4. CURRENT/CORRESPONDENCE ADDRESS"),
             createFormTable([
-              ["Address", formData.currentAddress || ""],
-              ["City/Town", formData.currentCity || ""],
-              ["State", formData.currentState || ""],
-              ["PIN Code", formData.currentPincode || ""],
+              ["Address", formData.contactAddress || formData.currentAddress || ""],
+              ["City/Town", formData.contactCity || formData.currentCity || ""],
+              ["State", formData.contactAddressState || formData.currentState || ""],
+              ["PIN Code", formData.contactPincode || formData.currentPincode || ""],
             ]),
 
             // Section 5: Parent/Guardian Information
@@ -310,23 +317,28 @@ export async function POST(req: Request) {
               ["Admission Quota", formData.admissionQuota || ""],
             ]),
 
-            // Section 8: Bank Details
+            // Section 8: TC Details
+            createSectionHeader("8. TC DETAILS"),
+            createFormTable([
+              ["TC Number", formData.tcNumber || ""],
+              [
+                "TC Date",
+                formData.tcDate
+                  ? new Date(formData.tcDate).toLocaleDateString("en-IN")
+                  : "",
+              ],
+              ["TC Issued By", formData.tcIssuedBy || ""],
+            ]),
+
+            // Section 9: Bank Details
             createSectionHeader(
-              "8. BANK ACCOUNT DETAILS (For Scholarship/Refund)",
+              "9. BANK ACCOUNT DETAILS (For Scholarship/Refund)",
             ),
             createFormTable([
               ["Bank Name", formData.bankName || ""],
               ["Branch Name", formData.bankBranch || ""],
               ["Account Number", formData.accountNumber || ""],
               ["IFSC Code", formData.ifscCode || ""],
-            ]),
-
-            // Section 9: Services Required
-            createSectionHeader("9. COLLEGE SERVICES"),
-            createCheckboxTable([
-              ["Hostel Accommodation Required", formData.hostelService],
-              ["Bus Transportation Required", formData.busService],
-              ["Fee Concession Applied", formData.applyForFeeConcession],
             ]),
 
             // Section 10: Additional Information

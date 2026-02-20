@@ -15,6 +15,8 @@ export interface FormFieldConfig {
   dependsOn?: string; // Field this depends on for visibility
   dependsOnValue?: string | string[]; // Value(s) that trigger visibility
   options?: { value: string; label: string }[]; // Options for select/radio
+  minAge?: number; // Minimum age validation for date fields
+  max?: string | number; // Max value or "current" for current year/date
 }
 
 // Personal Information Fields
@@ -36,8 +38,9 @@ export const personalInfoFields: FormFieldConfig[] = [
     type: "date",
     label: "Date of Birth",
     required: true,
+    minAge: 16,
     errorMessage: "Date of Birth is required.",
-    info: "Must be between 17-35 years old.",
+    info: "Must be at least 16 years old.",
   },
   {
     id: 3,
@@ -59,10 +62,31 @@ export const personalInfoFields: FormFieldConfig[] = [
   {
     id: 5,
     name: "religion",
-    type: "text",
+    type: "select",
     label: "Religion",
     required: true,
-    info: "Specify your religion (e.g., Hindu, Muslim, Christian). Used for statistical purposes.",
+    errorMessage: "Religion is required.",
+    info: "Select your religion.",
+    options: [
+      { value: "Hindu", label: "Hindu" },
+      { value: "Christian", label: "Christian" },
+      { value: "Muslim", label: "Muslim" },
+      { value: "Sikh", label: "Sikh" },
+      { value: "Jain", label: "Jain" },
+      { value: "Buddhist", label: "Buddhist" },
+      { value: "Other", label: "Other" },
+    ],
+  },
+  {
+    id: 999, // Use a unique ID for Caste
+    name: "caste",
+    type: "select",
+    label: "Caste",
+    required: true,
+    errorMessage: "Caste is required.",
+    info: "Select your caste. Options depend on religion.",
+    dependsOn: "religion",
+    // Options will be populated dynamically in the component
   },
   {
     id: 6,
@@ -90,17 +114,17 @@ export const personalInfoFields: FormFieldConfig[] = [
     required: true,
     pattern: "^[\\w.-]+@[\\w.-]+\\.\\w{2,}$",
     errorMessage: "Enter a valid email address.",
-    info: "Use an email you check regularly. We'll send admission updates here.",
+    info: "We will send your application status updates to this email.",
   },
   {
     id: 9,
     name: "phone",
     type: "tel",
-    label: "Phone Number",
+    label: "Mobile Number",
     required: true,
     pattern: "^[6-9]\\d{9}$",
-    errorMessage: "Enter a valid 10-digit Indian phone number.",
-    info: "Your mobile number for contact and admission-related communications.",
+    errorMessage: "Enter a valid 10-digit mobile number.",
+    info: "Your primary contact number. Do not prefix +91.",
   },
   {
     id: 10,
@@ -146,13 +170,22 @@ export const parentInfoFields: FormFieldConfig[] = [
     info: "Full name of your father.",
   },
   {
+    id: 210, // New ID for fatherOccupation
+    name: "fatherOccupation",
+    type: "text",
+    label: "Father's Occupation",
+    required: true,
+    errorMessage: "Father's occupation is required.",
+    info: "Current occupation of your father.",
+  },
+  {
     id: 21,
     name: "fatherPhone",
     type: "tel",
     label: "Father's Phone",
     required: false,
     pattern: "^[6-9]\\d{9}$",
-    errorMessage: "Enter a valid 10-digit phone number.",
+    errorMessage: "Enter a valid 10-digit phone number (starts with 6-9).",
     info: "Father's mobile number for important college communications.",
   },
   {
@@ -166,13 +199,22 @@ export const parentInfoFields: FormFieldConfig[] = [
     info: "Full name of your mother.",
   },
   {
+    id: 230, // New ID for motherOccupation
+    name: "motherOccupation",
+    type: "text",
+    label: "Mother's Occupation",
+    required: true,
+    errorMessage: "Mother's occupation is required.",
+    info: "Current occupation of your mother.",
+  },
+  {
     id: 23,
     name: "motherPhone",
     type: "tel",
     label: "Mother's Phone",
     required: false,
     pattern: "^[6-9]\\d{9}$",
-    errorMessage: "Enter a valid 10-digit phone number.",
+    errorMessage: "Enter a valid 10-digit phone number (starts with 6-9).",
     info: "Mother's mobile number for important college communications.",
   },
   {
@@ -223,39 +265,78 @@ export const addressInfoFields: FormFieldConfig[] = [
     type: "textarea",
     label: "Permanent Address",
     required: true,
-    placeholder: "Door/House Number, Street, Village, Taluk, District",
+    placeholder: "Door/House Number, Street, Village, Taluk, District, PIN: 123456",
     errorMessage: "Permanent address is required.",
     info: "Your official residential address from official documents (e.g., Aadhaar, ID proof).",
   },
   {
     id: 41,
     name: "permanentAddressState",
-    type: "text",
+    type: "select",
     label: "Permanent Address - State",
     required: true,
     errorMessage: "State is required.",
     info: "State where your permanent address is located.",
+    options: [
+      { value: "Kerala", label: "Kerala" },
+      { value: "Tamil Nadu", label: "Tamil Nadu" },
+      { value: "Karnataka", label: "Karnataka" },
+      { value: "Andhra Pradesh", label: "Andhra Pradesh" },
+      { value: "Telangana", label: "Telangana" },
+      { value: "Maharashtra", label: "Maharashtra" },
+      { value: "Delhi", label: "Delhi" },
+      { value: "Other", label: "Other" },
+    ],
+  },
+  {
+    id: 44, // New ID for permanentPincode
+    name: "permanentPincode",
+    type: "text",
+    label: "Permanent Address - Pincode",
+    required: true,
+    pattern: "^\\s*[1-9][0-9]{5}\\s*$",
+    errorMessage: "Enter a valid 6-digit PIN code.",
+    info: "6-digit postal index number.",
   },
   {
     id: 42,
     name: "contactAddress",
     type: "textarea",
-    label: "Contact Address (Current)",
+    label: "Contact Address",
     required: true,
-    placeholder: "Door/House Number, Street, Village, Taluk, District",
+    placeholder: "Door/House Number, Street, Village, Taluk, District, PIN: 123456",
     errorMessage: "Contact address is required.",
-    info: "Your current address where college can contact you. If same as permanent, enter 'Same as permanent address'.",
+    info: "Your current residential address. If same as permanent, you can copy it.",
   },
   {
     id: 43,
     name: "contactAddressState",
-    type: "text",
+    type: "select",
     label: "Contact Address - State",
     required: true,
     errorMessage: "State is required.",
     info: "State where your current address is located.",
+    options: [
+      { value: "Kerala", label: "Kerala" },
+      { value: "Tamil Nadu", label: "Tamil Nadu" },
+      { value: "Karnataka", label: "Karnataka" },
+      { value: "Andhra Pradesh", label: "Andhra Pradesh" },
+      { value: "Telangana", label: "Telangana" },
+      { value: "Maharashtra", label: "Maharashtra" },
+      { value: "Delhi", label: "Delhi" },
+      { value: "Other", label: "Other" },
+    ],
   },
-
+  {
+    id: 460, // New ID for contactPincode
+    name: "contactPincode",
+    type: "text",
+    label: "Contact Address - Pincode",
+    required: true,
+    pattern: "^\\s*[1-9][0-9]{5}\\s*$",
+    errorMessage: "Enter a valid 6-digit PIN code.",
+    info: "6-digit postal index number.",
+  },
   {
     id: 45,
     name: "localGuardianName",
@@ -283,193 +364,92 @@ export const addressInfoFields: FormFieldConfig[] = [
     required: false,
     pattern: "^[6-9]\\d{9}$",
     errorMessage: "Enter a valid 10-digit phone number.",
-    info: "Phone number of local guardian for emergency contact.",
+    info: "Mobile number of your local guardian.",
   },
 ];
 
-// Education Information Fields - Common
-export const educationInfoFieldsCommon: FormFieldConfig[] = [
+// Education Information Fields
+export const educationInfoFields: FormFieldConfig[] = [
   {
     id: 60,
     name: "qualifyingExam",
     type: "select",
-    label: "Qualifying Exam",
-
+    label: "Qualifying Examination",
     required: true,
-    errorMessage: "Qualifying exam is required.",
-    info: "The final exam of your previous level of education.",
+    errorMessage: "Please select your qualifying examination.",
+    info: "The examination based on which you are seeking admission.",
+    // Options loaded based on program
   },
   {
     id: 61,
-    name: "qualifyingExamRegisterNo",
+    name: "qualifyingBoard",
     type: "text",
-    label: "Exam Register Number",
+    label: "Board / University",
     required: true,
-    errorMessage: "Register number is required.",
-    info: "Your roll number or registration number in the qualifying exam.",
+    errorMessage: "Board/University is required.",
+    info: "Name of the board (e.g., CBSE, Kerala State Board) or University.",
   },
   {
     id: 62,
-    name: "qualifyingExamInstitute",
+    name: "qualifyingSchool",
     type: "text",
-    label: "Exam Conducted By",
+    label: "Institution / School Name",
     required: true,
     errorMessage: "Institution name is required.",
-    info: "Name of the institution/board that conducted your qualifying exam (e.g., CBSE, ICSE, State Board).",
+    info: "Name of the school or college where you completed the qualifying exam.",
   },
   {
     id: 63,
-    name: "qualifyingExamPassoutYear",
-    type: "number",
+    name: "qualifyingYear",
+    type: "text",
     label: "Year of Passing",
     required: true,
-    errorMessage: "Year of passing is required.",
-    info: "Year when you passed your qualifying exam.",
+    pattern: "^(20)[2-9][0-9]$|^(20)[0-1][0-9]$|^(19)[9][0-9]$", // Basic year validation ~1990-2099
+    errorMessage: "Enter a valid year (e.g., 2024).",
+    info: "Year in which you passed the qualifying examination.",
+  },
+  {
+    id: 64,
+    name: "qualifyingRegNo",
+    type: "text",
+    label: "Register Number",
+    required: true,
+    errorMessage: "Register number is required.",
+    info: "Registration number of your qualifying examination.",
+  },
+  {
+    id: 65,
+    name: "qualifyingMaxMarks",
+    type: "number",
+    label: "Maximum Marks (Total)",
+    required: true,
+    pattern: "^[0-9]+(\\.[0-9]+)?$",
+    errorMessage: "Enter a valid number.",
+    info: "Total maximum marks for all subjects.",
+  },
+  {
+    id: 66,
+    name: "qualifyingObtainedMarks",
+    type: "number",
+    label: "Marks Obtained (Total)",
+    required: true,
+    pattern: "^[0-9]+(\\.[0-9]+)?$",
+    errorMessage: "Enter a valid number.",
+    info: "Total marks obtained in all subjects.",
+  },
+  {
+    id: 67,
+    name: "qualifyingPercentage",
+    type: "number",
+    label: "Percentage / CGPA",
+    required: true,
+    pattern: "^[0-9]+(\\.[0-9]+)?$",
+    errorMessage: "Enter a valid percentage/CGPA.",
+    info: "Aggregate percentage or CGPA.",
   },
 ];
 
-// Education Fields - B.Tech Regular/NRI
-export const educationInfoFieldsBTechRegular: FormFieldConfig[] = [
-  {
-    id: 70,
-    name: "physicsScore",
-    type: "number",
-    label: "Physics Score (Plus Two)",
-    required: true,
-    pattern: "^([0-9]{1,2}|1[0-9]{2}|200)(\\.\\d{1,2})?$",
-    errorMessage: "Enter a valid physics score (0-200).",
-    info: "Your score in Physics from Plus Two/12th standard. Important for engineering foundation.",
-    programs: ["btech"],
-    admissionTypes: ["regular", "nri"],
-  },
-  {
-    id: 71,
-    name: "chemistryScore",
-    type: "number",
-    label: "Chemistry Score (Plus Two)",
-    required: true,
-    pattern: "^([0-9]{1,2}|1[0-9]{2}|200)(\\.\\d{1,2})?$",
-    errorMessage: "Enter a valid chemistry score (0-200).",
-    info: "Your score in Chemistry from Plus Two/12th standard.",
-    programs: ["btech"],
-    admissionTypes: ["regular", "nri"],
-  },
-  {
-    id: 72,
-    name: "mathsScore",
-    type: "number",
-    label: "Mathematics Score (Plus Two)",
-    required: true,
-    pattern: "^([0-9]{1,2}|1[0-9]{2}|200)(\\.\\d{1,2})?$",
-    errorMessage: "Enter a valid mathematics score (0-200).",
-    info: "Your score in Mathematics from Plus Two/12th standard. Essential for engineering courses.",
-    programs: ["btech"],
-    admissionTypes: ["regular", "nri"],
-  },
-  {
-    id: 73,
-    name: "totalPercentage",
-    type: "number",
-    label: "Total Percentage (Plus Two)",
-    required: true,
-    pattern: "^([0-9]{1,2}|100)(\\.\\d{1,2})?$",
-    errorMessage: "Enter a valid percentage (0-100).",
-    info: "Your overall percentage/CGPA in Plus Two/12th standard.",
-    programs: ["btech"],
-    admissionTypes: ["regular", "nri"],
-  },
-];
 
-// Education Fields - B.Tech Lateral Entry (Polytechnic)
-export const educationInfoFieldsBTechLateral: FormFieldConfig[] = [
-  {
-    id: 74,
-    name: "polytechnicInstitute",
-    type: "text",
-    label: "Polytechnic Institute Name",
-    required: true,
-    errorMessage: "Institute name is required.",
-    info: "Name of your polytechnic college.",
-    programs: ["btech"],
-    admissionTypes: ["lateral"],
-  },
-  {
-    id: 75,
-    name: "polytechnicSemestersCompleted",
-    type: "number",
-    label: "Semesters Completed",
-    required: true,
-    errorMessage: "Number of semesters is required.",
-    info: "Total semesters completed in polytechnic (usually 4-6 semesters for lateral entry).",
-    programs: ["btech"],
-    admissionTypes: ["lateral"],
-  },
-  {
-    id: 76,
-    name: "polytechnicCGPA",
-    type: "number",
-    label: "CGPA in Polytechnic",
-    required: true,
-    pattern: "^([0-9]|10)(\\.\\d{1,2})?$",
-    errorMessage: "Enter a valid CGPA (0-10).",
-    info: "Your cumulative GPA in polytechnic. Based on this, you'll be placed in appropriate semester.",
-    programs: ["btech"],
-    admissionTypes: ["lateral"],
-  },
-  {
-    id: 77,
-    name: "polytechnicBranch",
-    type: "text",
-    label: "Branch/Stream in Polytechnic",
-    required: true,
-    errorMessage: "Branch is required.",
-    info: "Your specialization in polytechnic (e.g., Civil, Mechanical, Electrical, Computer Science).",
-    programs: ["btech"],
-    admissionTypes: ["lateral"],
-  },
-  {
-    id: 78,
-    name: "polytechnicPassoutYear",
-    type: "number",
-    label: "Year of Passing Polytechnic",
-    required: true,
-    errorMessage: "Year is required.",
-    info: "Year when you completed polytechnic education.",
-    programs: ["btech"],
-    admissionTypes: ["lateral"],
-  },
-];
-
-// TC and Transfer Certificate Fields
-export const tcFields: FormFieldConfig[] = [
-  {
-    id: 85,
-    name: "tcNumber",
-    type: "text",
-    label: "Transfer Certificate (TC) Number",
-    required: true,
-    errorMessage: "TC number is required.",
-    info: "Your TC/Migration Certificate number from previous institution.",
-  },
-  {
-    id: 86,
-    name: "tcDate",
-    type: "date",
-    label: "TC Issue Date",
-    required: true,
-    errorMessage: "TC date is required.",
-    info: "Date when TC was issued by your previous institution.",
-  },
-  {
-    id: 87,
-    name: "tcIssuedBy",
-    type: "text",
-    label: "TC Issued By",
-    required: true,
-    errorMessage: "Institution name is required.",
-    info: "Name of the institution that issued your TC.",
-  },
-];
 
 // Entrance Exam Fields - B.Tech Regular
 export const entranceExamFieldsBTechRegular: FormFieldConfig[] = [
@@ -482,7 +462,7 @@ export const entranceExamFieldsBTechRegular: FormFieldConfig[] = [
     errorMessage: "Entrance exam type is required.",
     info: "Type of entrance exam you appeared for (KEAM for Kerala, JEE Main, CUET, etc.)",
     programs: ["btech"],
-    admissionTypes: ["regular", "nri"],
+    admissionTypes: ["regular", "nri", "management"],
   },
   {
     id: 91,
@@ -493,7 +473,7 @@ export const entranceExamFieldsBTechRegular: FormFieldConfig[] = [
     errorMessage: "Roll number is required.",
     info: "Your roll number/registration number in the entrance exam.",
     programs: ["btech"],
-    admissionTypes: ["regular", "nri"],
+    admissionTypes: ["regular", "nri", "management"],
   },
   {
     id: 92,
@@ -505,7 +485,7 @@ export const entranceExamFieldsBTechRegular: FormFieldConfig[] = [
     errorMessage: "Rank must be numeric.",
     info: "Your rank in the entrance exam.",
     programs: ["btech"],
-    admissionTypes: ["regular", "nri"],
+    admissionTypes: ["regular", "nri", "management"],
   },
   {
     id: 93,
@@ -520,6 +500,8 @@ export const entranceExamFieldsBTechRegular: FormFieldConfig[] = [
     admissionTypes: ["regular", "management"],
   },
 ];
+
+
 
 // Entrance Exam Fields - B.Tech NRI (Optional)
 export const entranceExamFieldsBTechNRI: FormFieldConfig[] = [
@@ -804,9 +786,293 @@ export const bankInfoFields: FormFieldConfig[] = [
     info: "Name of the branch where your account is held.",
   },
 ];
+// Education Information Fields - Common
+export const educationInfoFieldsCommon: FormFieldConfig[] = [
+  {
+    id: 60,
+    name: "qualifyingExam",
+    type: "select",
+    label: "Qualifying Exam",
+    required: true,
+    errorMessage: "Qualifying exam is required.",
+    info: "The final exam of your previous level of education.",
+    programs: ["btech"],
+    admissionTypes: ["regular", "nri", "management"],
+    options: [
+      { value: "kerala-plus-two", label: "Kerala Plus Two" },
+      { value: "cbse-12th", label: "CBSE 12th" },
+      { value: "icse-12th", label: "ICSE 12th" },
+      { value: "state-board-12th", label: "Other State Board 12th" },
+      { value: "international", label: "International Board/Other" },
+    ],
+  },
+  {
+    id: 601, // Unique ID for lateral
+    name: "qualifyingExam",
+    type: "select",
+    label: "Qualifying Exam",
+    required: true,
+    errorMessage: "Qualifying exam is required.",
+    info: "The final exam of your previous level of education.",
+    programs: ["btech"],
+    admissionTypes: ["lateral"],
+    options: [
+      { value: "diploma-engineering", label: "Diploma in Engineering" },
+      { value: "polytechnic", label: "Polytechnic Diploma" },
+    ],
+  },
+  {
+    id: 602, // Unique ID for MCA
+    name: "qualifyingExam",
+    type: "select",
+    label: "Qualifying Exam",
+    required: true,
+    errorMessage: "Qualifying exam is required.",
+    info: "The final exam of your previous level of education.",
+    programs: ["mca"],
+    options: [
+      { value: "bca", label: "BCA" },
+      { value: "bsc-cs", label: "B.Sc Computer Science" },
+      { value: "btech-cs", label: "B.Tech CS/IT" },
+      { value: "other", label: "Other Degree with Maths" },
+    ],
+  },
+  {
+    id: 603, // Unique ID for MTech
+    name: "qualifyingExam",
+    type: "select",
+    label: "Qualifying Exam",
+    required: true,
+    errorMessage: "Qualifying exam is required.",
+    info: "The final exam of your previous level of education.",
+    programs: ["mtech"],
+    options: [
+      { value: "btech", label: "B.Tech/B.E" },
+      { value: "msc", label: "M.Sc" },
+      { value: "mca", label: "MCA" },
+    ],
+  },
+  {
+    id: 61,
+    name: "qualifyingExamRegisterNo",
+    type: "text",
+    label: "Exam Register Number",
+    required: true,
+    errorMessage: "Register number is required.",
+    info: "Your roll number or registration number in the qualifying exam.",
+  },
+  {
+    id: 62,
+    name: "qualifyingExamInstitute",
+    type: "text",
+    label: "Exam Conducted By",
+    required: true,
+    errorMessage: "Institution name is required.",
+    info: "Name of the institution/board that conducted your qualifying exam (e.g., CBSE, ICSE, State Board).",
+  },
+  {
+    id: 63,
+    name: "qualifyingExamPassoutYear",
+    type: "number",
+    label: "Year of Passing",
+    required: true,
+    pattern: "^20[0-9]{2}$",
+    errorMessage: "Enter a valid year (e.g., 2024).",
+    info: "Year when you passed your qualifying exam.",
+    max: "current", // Validation: Cannot be in future
+  },
+  {
+    id: 68,
+    name: "qualifyingSchool",
+    type: "text",
+    label: "Institution / School Name",
+    required: true,
+    errorMessage: "Institution name is required.",
+    info: "Name of the school or college where you completed the qualifying exam.",
+  },
+];
+
+// Education Fields - B.Tech Regular/NRI
+export const educationInfoFieldsBTechRegular: FormFieldConfig[] = [
+  {
+    id: 70,
+    name: "physicsScore",
+    type: "number",
+    label: "Physics Score (Plus Two)",
+    required: true,
+    pattern: "^([0-9]{1,2}|1[0-9]{2}|200)(\\.\\d{1,2})?$",
+    errorMessage: "Enter a valid physics score (0-200).",
+    info: "Your score in Physics from Plus Two/12th standard. Important for engineering foundation.",
+    programs: ["btech"],
+    admissionTypes: ["regular", "nri", "management"],
+  },
+  {
+    id: 71,
+    name: "chemistryScore",
+    type: "number",
+    label: "Chemistry Score (Plus Two)",
+    required: true,
+    pattern: "^([0-9]{1,2}|1[0-9]{2}|200)(\\.\\d{1,2})?$",
+    errorMessage: "Enter a valid chemistry score (0-200).",
+    info: "Your score in Chemistry from Plus Two/12th standard.",
+    programs: ["btech"],
+    admissionTypes: ["regular", "nri", "management"],
+  },
+  {
+    id: 72,
+    name: "mathsScore",
+    type: "number",
+    label: "Mathematics Score (Plus Two)",
+    required: true,
+    pattern: "^([0-9]{1,2}|1[0-9]{2}|200)(\\.\\d{1,2})?$",
+    errorMessage: "Enter a valid mathematics score (0-200).",
+    info: "Your score in Mathematics from Plus Two/12th standard. Essential for engineering courses.",
+    programs: ["btech"],
+    admissionTypes: ["regular", "nri", "management"],
+  },
+  {
+    id: 73,
+    name: "totalPercentage",
+    type: "number",
+    label: "Total Percentage (Plus Two)",
+    required: true,
+    pattern: "^([0-9]{1,2}|100)(\\.\\d{1,2})?$",
+    errorMessage: "Enter a valid percentage (0-100).",
+    info: "Your overall percentage/CGPA in Plus Two/12th standard.",
+    programs: ["btech"],
+    admissionTypes: ["regular", "nri", "management"],
+  },
+];
+
+// Education Fields - B.Tech Lateral Entry (Polytechnic)
+export const educationInfoFieldsBTechLateral: FormFieldConfig[] = [
+  {
+    id: 74,
+    name: "polytechnicInstitute",
+    type: "text",
+    label: "Polytechnic Institute Name",
+    required: true,
+    errorMessage: "Institute name is required.",
+    info: "Name of your polytechnic college.",
+    programs: ["btech"],
+    admissionTypes: ["lateral"],
+  },
+  {
+    id: 75,
+    name: "polytechnicSemestersCompleted",
+    type: "number",
+    label: "Semesters Completed",
+    required: true,
+    errorMessage: "Number of semesters is required.",
+    info: "Total semesters completed in polytechnic (usually 4-6 semesters for lateral entry).",
+    programs: ["btech"],
+    admissionTypes: ["lateral"],
+  },
+  {
+    id: 76,
+    name: "polytechnicCGPA",
+    type: "number",
+    label: "CGPA in Polytechnic",
+    required: true,
+    pattern: "^([0-9]|10)(\\.\\d{1,2})?$",
+    errorMessage: "Enter a valid CGPA (0-10).",
+    info: "Your cumulative GPA in polytechnic. Based on this, you'll be placed in appropriate semester.",
+    programs: ["btech"],
+    admissionTypes: ["lateral"],
+  },
+  {
+    id: 77,
+    name: "polytechnicBranch",
+    type: "text",
+    label: "Branch/Stream in Polytechnic",
+    required: true,
+    errorMessage: "Branch is required.",
+    info: "Your specialization in polytechnic (e.g., Civil, Mechanical, Electrical, Computer Science).",
+    programs: ["btech"],
+    admissionTypes: ["lateral"],
+  },
+  {
+    id: 78,
+    name: "polytechnicPassoutYear",
+    type: "number",
+    label: "Year of Passing Polytechnic",
+    required: true,
+    errorMessage: "Year is required.",
+    info: "Year when you completed polytechnic education.",
+    programs: ["btech"],
+    admissionTypes: ["lateral"],
+    max: "current",
+  },
+];
+
+// TC Information Fields
+export const tcFields: FormFieldConfig[] = [
+  {
+    id: 80,
+    name: "tcNumber",
+    type: "text",
+    label: "TC Number",
+    required: true,
+    errorMessage: "TC Number is required.",
+    info: "Number mentioned on your Transfer Certificate.",
+  },
+  {
+    id: 81,
+    name: "tcDate",
+    type: "date",
+    label: "TC Issue Date",
+    required: true,
+    errorMessage: "Date is required.",
+    info: "Date mentioned on your Transfer Certificate.",
+    max: "current",
+  },
+  {
+    id: 87,
+    name: "tcIssuedBy",
+    type: "text",
+    label: "TC Issued By",
+    required: true,
+    errorMessage: "Institution name is required.",
+    info: "Name of the institution that issued your TC.",
+  },
+];
 
 // Additional Information Fields
-export const additionalInfoFields: FormFieldConfig[] = [];
+export const additionalInfoFields: FormFieldConfig[] = [
+  {
+    id: 160,
+    name: "hostelService",
+    type: "checkbox",
+    label: "Hostel Accommodation Required",
+    required: false,
+    info: "Check if you wish to apply for college hostel.",
+  },
+  {
+    id: 161,
+    name: "busService",
+    type: "checkbox",
+    label: "Bus Transportation Required",
+    required: false,
+    info: "Check if you wish to avail college bus facility.",
+  },
+  {
+    id: 162,
+    name: "applyForFeeConcession",
+    type: "checkbox",
+    label: "Apply for Fee Concession (if eligible)",
+    required: false,
+    info: "Check if you wish to be considered for fee concession based on income/category.",
+  },
+  {
+    id: 163,
+    name: "additionalInfo",
+    type: "textarea",
+    label: "Any other information",
+    required: false,
+    info: "Any medical conditions, achievements or other details you want to share.",
+    placeholder: "Medical history, extra-curricular achievements, etc."
+  },
+];
 
 // Utility function to get fields for a specific program
 export const getFieldsForProgram = (
@@ -886,6 +1152,60 @@ export const dropdownOptions = {
     { value: "SC", label: "SC - Scheduled Caste" },
     { value: "ST", label: "ST - Scheduled Tribe" },
   ],
+
+  // Religion Options
+  religion: [
+    { value: "Hindu", label: "Hindu" },
+    { value: "Christian", label: "Christian" },
+    { value: "Muslim", label: "Muslim" },
+    { value: "Sikh", label: "Sikh" },
+    { value: "Jain", label: "Jain" },
+    { value: "Buddhist", label: "Buddhist" },
+    { value: "Other", label: "Other" },
+  ],
+
+  // Caste Data (Mapping Religion -> Castes)
+  // Note: This matches the structure expected by the frontend logic we will implement
+  casteData: {
+    Hindu: [
+      { value: "Nair", label: "Nair" },
+      { value: "Ezhava", label: "Ezhava" },
+      { value: "Brahmin", label: "Brahmin" },
+      { value: "Vishwakarma", label: "Vishwakarma" },
+      { value: "Thiyya", label: "Thiyya" },
+      { value: "SC", label: "Scheduled Caste (SC)" },
+      { value: "ST", label: "Scheduled Tribe (ST)" },
+      { value: "General", label: "General/Other" },
+    ],
+    Christian: [
+      { value: "Roman Catholic", label: "Roman Catholic (RC)" },
+      { value: "Latin Catholic", label: "Latin Catholic (LC)" },
+      { value: "Jacobite", label: "Jacobite" },
+      { value: "Orthodox", label: "Orthodox" },
+      { value: "Marthoma", label: "Marthoma" },
+      { value: "CSI", label: "CSI" },
+      { value: "Pentecost", label: "Pentecost" },
+      { value: "General", label: "General/Other" },
+    ],
+    Muslim: [
+      { value: "Sunni", label: "Sunni" },
+      { value: "Mujahid", label: "Mujahid" },
+      { value: "Jamaat-e-Islami", label: "Jamaat-e-Islami" },
+      { value: "General", label: "General/Other" },
+    ],
+    Sikh: [
+      { value: "NA", label: "Not Applicable" },
+    ],
+    Jain: [
+      { value: "NA", label: "Not Applicable" },
+    ],
+    Buddhist: [
+      { value: "NA", label: "Not Applicable" },
+    ],
+    Other: [
+      { value: "Other", label: "Other" },
+    ],
+  } as Record<string, { value: string; label: string }[]>,
 
   program: [
     { value: "btech", label: "B.Tech (Bachelor of Technology)" },
