@@ -1,0 +1,16 @@
+﻿.next/types/app/api/check/[admissionNumber]/route.ts(49,7): error TS2344: Type '{ __tag__: "GET"; __param_position__: "second"; __param_type__: { params: { admissionNumber: string; }; }; }' does not satisfy the constraint 'ParamCheck<RouteContext>'.
+  The types of '__param_type__.params' are incompatible between these types.
+    Type '{ admissionNumber: string; }' is missing the following properties from type 'Promise<any>': then, catch, finally, [Symbol.toStringTag]
+.next/types/validator.ts(144,31): error TS2344: Type 'typeof import("C:/Users/josep/Documents/College/CEC-connect/admission/app/api/check/[admissionNumber]/route")' does not satisfy the constraint 'RouteHandlerConfig<"/api/check/[admissionNumber]">'.
+  Types of property 'GET' are incompatible.
+    Type '(request: NextRequest, { params }: { params: { admissionNumber: string; }; }) => Promise<NextResponse<any>>' is not assignable to type '(request: NextRequest, context: { params: Promise<{ admissionNumber: string; }>; }) => void | Response | Promise<void | Response>'.
+      Types of parameters '__1' and 'context' are incompatible.
+        Type '{ params: Promise<{ admissionNumber: string; }>; }' is not assignable to type '{ params: { admissionNumber: string; }; }'.
+          Types of property 'params' are incompatible.
+            Property 'admissionNumber' is missing in type 'Promise<{ admissionNumber: string; }>' but required in type '{ admissionNumber: string; }'.
+app/form/page-v1.tsx(124,17): error TS2322: Type '(e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => void' is not assignable to type '(e: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => void'.
+  Types of parameters 'e' and 'e' are incompatible.
+    Type 'ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>' is not assignable to type 'ChangeEvent<HTMLInputElement | HTMLSelectElement>'.
+      Type 'HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement' is not assignable to type 'HTMLInputElement | HTMLSelectElement'.
+        Type 'HTMLTextAreaElement' is not assignable to type 'HTMLInputElement | HTMLSelectElement'.
+          Type 'HTMLTextAreaElement' is missing the following properties from type 'HTMLInputElement': accept, align, alt, capture, and 29 more.

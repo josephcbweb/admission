@@ -4,10 +4,10 @@ const BACKEND_URL = process.env.BACKEND_URL || "http://localhost:3000";
 
 export async function GET(
     request: NextRequest,
-    { params }: { params: { admissionNumber: string } }
+    { params }: { params: Promise<{ admissionNumber: string }> }
 ) {
     try {
-        const admissionNumber = params.admissionNumber;
+        const { admissionNumber } = await params;
 
         if (!admissionNumber) {
             return NextResponse.json(

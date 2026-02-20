@@ -125,11 +125,11 @@ const AdmissionCheck: React.FC<AdmissionCheckProps> = ({
 
   const getInfo = (key: string) => {
     const map: Record<string, { title: string; sub: string }> = {
-      btech: { title: "B.Tech", sub: "Bachelor of Technology" },
-      mca: { title: "MCA", sub: "Master of Computer Applications" },
-      mtech: { title: "M.Tech", sub: "Master of Technology" },
+      BTECH: { title: "B.Tech", sub: "Bachelor of Technology" },
+      MCA: { title: "MCA", sub: "Master of Computer Applications" },
+      MTECH: { title: "M.Tech", sub: "Master of Technology" },
     };
-    return map[key.toLowerCase()] || { title: key, sub: "Program" };
+    return map[key.toUpperCase()] || { title: key, sub: "Program" };
   };
 
   const formatDate = (s: string) => new Date(s).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });

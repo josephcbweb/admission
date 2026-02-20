@@ -1076,7 +1076,7 @@ export const additionalInfoFields: FormFieldConfig[] = [
 
 // Utility function to get fields for a specific program
 export const getFieldsForProgram = (
-  program: "btech" | "mca" | "mtech",
+  program: "BTECH" | "MCA" | "MTECH",
   admissionType: "regular" | "lateral" | "nri" | "management" = "regular",
 ) => {
   const fields: FormFieldConfig[] = [];
@@ -1086,7 +1086,7 @@ export const getFieldsForProgram = (
   fields.push(...parentInfoFields);
   fields.push(...addressInfoFields);
 
-  if (program === "btech") {
+  if (program === "BTECH") {
     if (admissionType === "lateral") {
       fields.push(...educationInfoFieldsCommon);
       fields.push(...educationInfoFieldsBTechLateral);
@@ -1107,11 +1107,11 @@ export const getFieldsForProgram = (
       fields.push(...entranceExamFieldsBTechNRI);
       fields.push(...tcFields);
     }
-  } else if (program === "mca") {
+  } else if (program === "MCA") {
     fields.push(...educationInfoFieldsMCA);
     fields.push(...entranceExamFieldsMCA);
     fields.push(...tcFields);
-  } else if (program === "mtech") {
+  } else if (program === "MTECH") {
     fields.push(...educationInfoFieldsMTech);
     fields.push(...entranceExamFieldsMTech);
     fields.push(...tcFields);

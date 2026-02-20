@@ -7,7 +7,7 @@ import SuccessModal from "@/components/SuccessModal";
 import { getFieldsForProgram, dropdownOptions } from "@/utilities/form-data-v2";
 import { FiArrowLeft, FiArrowRight, FiAlertCircle } from "react-icons/fi";
 
-type ProgramType = "btech" | "mca" | "mtech";
+type ProgramType = "BTECH" | "MCA" | "MTECH";
 type AdmissionTypeType = "regular" | "lateral" | "nri" | "management";
 
 interface FormValues {
@@ -470,9 +470,9 @@ const AdmissionFormPage = () => {
                   Academic Year 2025-26
                 </span>
                 <h1 className="text-4xl md:text-6xl font-serif text-gray-900 mb-4 leading-tight">
-                  {selectedProgram === "btech"
+                  {selectedProgram === "BTECH"
                     ? "B.Tech Application"
-                    : selectedProgram === "mca"
+                    : selectedProgram === "MCA"
                       ? "MCA Application"
                       : "M.Tech Application"}
                 </h1>
@@ -798,7 +798,16 @@ const FormSection: React.FC<FormSectionProps> = ({
             className={field.type === "textarea" ? "md:col-span-2" : ""}
           >
             <FormInput
-              {...field}
+              id={field.id}
+              name={field.name}
+              label={field.label}
+              type={field.type}
+              required={field.required}
+              placeholder={field.placeholder}
+              info={field.info}
+              minAge={field.minAge}
+              max={field.max}
+              pattern={field.pattern}
               options={dynamicOptions[field.name] || field.options}
               onChange={onChange}
               value={formValues[field.name] || ""}

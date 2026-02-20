@@ -50,7 +50,9 @@ const page = () => {
   });
 
   const onChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+    >
   ) => {
     setValues({ ...values, [e.target.name]: e.target.value });
   };
@@ -120,7 +122,14 @@ const page = () => {
               transition={{ delay: 0.5 + index * 0.05 }}
             >
               <FormInput
-                {...input}
+                id={input.id}
+                name={input.name}
+                type={input.type}
+                label={input.label}
+                required={!!input.required}
+                pattern={input.pattern}
+                errorMessage={input.errorMessage}
+                placeholder={input.placeholder}
                 onChange={onChange}
                 value={values[input.name as keyof typeof values]}
               />

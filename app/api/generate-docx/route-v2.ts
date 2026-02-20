@@ -32,13 +32,13 @@ export async function POST(request: NextRequest) {
     // Select template based on program
     let templatePath = "public/template-btech.docx";
     switch (program) {
-      case "mca":
+      case "MCA":
         templatePath = "public/template-mca.docx";
         break;
-      case "mtech":
+      case "MTECH":
         templatePath = "public/template-mtech.docx";
         break;
-      case "btech":
+      case "BTECH":
       default:
         templatePath = "public/template-btech.docx";
         break;
@@ -71,11 +71,11 @@ export async function POST(request: NextRequest) {
       admissionNumber: admissionNumber || "PENDING",
       // Map program names
       programName:
-        program === "btech"
+        program === "BTECH"
           ? "B.Tech (Bachelor of Technology)"
-          : program === "mca"
-          ? "MCA (Master of Computer Applications)"
-          : "M.Tech (Master of Technology)",
+          : program === "MCA"
+            ? "MCA (Master of Computer Applications)"
+            : "M.Tech (Master of Technology)",
       // Format dates
       dob: body.dateOfBirth
         ? new Date(body.dateOfBirth).toLocaleDateString("en-GB")
@@ -113,9 +113,8 @@ export async function POST(request: NextRequest) {
       headers: {
         "Content-Type":
           "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-        "Content-Disposition": `attachment; filename="admission-${
-          admissionNumber || "form"
-        }.docx"`,
+        "Content-Disposition": `attachment; filename="admission-${admissionNumber || "form"
+          }.docx"`,
       },
     });
   } catch (error) {
