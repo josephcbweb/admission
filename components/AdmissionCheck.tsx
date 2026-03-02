@@ -139,7 +139,7 @@ const AdmissionCheck: React.FC<AdmissionCheckProps> = ({
     return (
       <motion.div variants={itemVariants} className="mb-16">
         <h3 className="text-[10px] font-mono font-bold uppercase tracking-widest mb-6 text-[#1a1917]/40 flex items-center gap-2">
-          {type === 'ongoing' && <span className="h-2 w-2 rounded-full bg-[#ccff00] shadow-[0_0_10px_#ccff00] animate-pulse" />}
+          {type === 'ongoing' && <span className="h-2 w-2 rounded-full bg-[#2563eb] shadow-[0_0_10px_#2563eb] animate-pulse" />}
           {title}
         </h3>
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
@@ -155,13 +155,13 @@ const AdmissionCheck: React.FC<AdmissionCheckProps> = ({
                   relative p-6 group rounded-[2rem] border
                   transition-all duration-300 overflow-hidden
                   ${type === 'ongoing'
-                    ? 'cursor-pointer bg-[#efede6] border-black/5 hover:border-[#ccff00]/50 hover:shadow-xl'
+                    ? 'cursor-pointer bg-[#efede6] border-black/5 hover:border-[#2563eb]/50 hover:shadow-xl'
                     : 'bg-[#f5f5f0] border-transparent opacity-60 grayscale'}
                   ${type === 'upcoming' ? 'border-dashed border-black/10' : ''}
                 `}
               >
                 {type === 'ongoing' && (
-                  <div className="absolute top-0 left-0 w-full h-1 bg-[#ccff00] transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left" />
+                  <div className="absolute top-0 left-0 w-full h-1 bg-[#2563eb] transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left" />
                 )}
 
                 <div className="flex justify-between items-start mb-6 relative z-10">
@@ -186,8 +186,8 @@ const AdmissionCheck: React.FC<AdmissionCheckProps> = ({
 
                 {type === 'ongoing' && (
                   <div className="absolute bottom-6 right-6 overflow-hidden z-10">
-                    <div className="w-10 h-10 rounded-full bg-[#ccff00] flex items-center justify-center transform translate-y-20 group-hover:translate-y-0 transition-transform duration-300">
-                      <FiArrowRight className="text-black text-lg" />
+                    <div className="w-10 h-10 rounded-full bg-[#2563eb] flex items-center justify-center transform translate-y-20 group-hover:translate-y-0 transition-transform duration-300">
+                      <FiArrowRight className="text-white text-lg" />
                     </div>
                   </div>
                 )}
@@ -200,7 +200,7 @@ const AdmissionCheck: React.FC<AdmissionCheckProps> = ({
   }
 
   return (
-    <div className="min-h-screen w-full bg-[#fbfbf6] text-[#1a1917] font-sans selection:bg-[#ccff00] selection:text-black flex relative overflow-hidden">
+    <div className="min-h-screen w-full bg-[#fbfbf6] text-[#1a1917] font-sans selection:bg-[#2563eb] selection:text-white flex relative overflow-hidden">
       {/* Noise Overlay */}
       <div className="fixed inset-0 pointer-events-none z-50 opacity-[0.03] mix-blend-overlay">
         <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
@@ -225,7 +225,7 @@ const AdmissionCheck: React.FC<AdmissionCheckProps> = ({
               {[0, 1, 2].map(i => (
                 <motion.div
                   key={i}
-                  className="w-3 h-3 bg-[#ccff00] rounded-full"
+                  className="w-3 h-3 bg-[#2563eb] rounded-full"
                   variants={dotVariants}
                   transition={dotTransition as any}
                 />
@@ -278,7 +278,7 @@ const AdmissionCheck: React.FC<AdmissionCheckProps> = ({
             rotate: [0, 90, 0],
           }}
           transition={{ duration: 20, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute top-1/4 left-1/4 w-96 h-96 bg-[#ccff00]/20 rounded-full blur-3xl mix-blend-multiply"
+          className="absolute top-1/4 left-1/4 w-96 h-96 bg-[#2563eb]/20 rounded-full blur-3xl mix-blend-multiply"
         />
         <motion.div
           animate={{
@@ -286,7 +286,7 @@ const AdmissionCheck: React.FC<AdmissionCheckProps> = ({
             rotate: [0, -60, 0],
           }}
           transition={{ duration: 15, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-          className="absolute bottom-1/4 right-1/4 w-[500px] h-[500px] bg-emerald-500/10 rounded-full blur-3xl mix-blend-multiply"
+          className="absolute bottom-1/4 right-1/4 w-[500px] h-[500px] bg-blue-400/10 rounded-full blur-3xl mix-blend-multiply"
         />
 
         {/* Decorative Card Stack - Bento Style */}
@@ -310,7 +310,7 @@ const AdmissionCheck: React.FC<AdmissionCheckProps> = ({
             className="relative bg-[#fbfbf6]/80 backdrop-blur-xl border border-white/50 shadow-2xl rounded-[2.5rem] p-10 h-96 flex flex-col justify-between"
           >
             <div className="space-y-6">
-              <div className="w-16 h-16 rounded-2xl bg-[#ccff00] flex items-center justify-center text-black text-2xl shadow-lg shadow-[#ccff00]/20">
+              <div className="w-16 h-16 rounded-2xl bg-[#2563eb] flex items-center justify-center text-white text-2xl shadow-lg shadow-[#2563eb]/20">
                 <FaRankingStar />
               </div>
               <div>

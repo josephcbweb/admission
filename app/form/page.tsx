@@ -1,9 +1,10 @@
 "use client";
 import React, { useState, useCallback, useEffect } from "react";
-import { motion } from "motion/react";
+import { motion, useScroll, useTransform } from "motion/react";
 import FormInput from "@/components/FormInput";
 import AdmissionCheck from "@/components/AdmissionCheck";
 import SuccessModal from "@/components/SuccessModal";
+import ConfirmSubmissionModal from "@/components/ConfirmSubmissionModal";
 import { getFieldsForProgram, dropdownOptions } from "@/utilities/form-data-v2";
 import { FiArrowLeft, FiArrowRight, FiAlertCircle } from "react-icons/fi";
 
@@ -43,6 +44,10 @@ const AdmissionFormPage = () => {
   } | null>(null);
   const [departments, setDepartments] = useState<Department[]>([]);
   const [loadingDepartments, setLoadingDepartments] = useState(false);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [sameAsPermAddress, setSameAsPermAddress] = useState(false);
+  const { scrollYProgress } = useScroll();
+  const bgOpacity = useTransform(scrollYProgress, [0, 0.4], [0, 1]);
 
   // Fetch departments when the form step is entered
   useEffect(() => {
@@ -102,6 +107,26 @@ const AdmissionFormPage = () => {
     // Clear form values when changing admission type to reset program-specific fields
     setFormValues({});
     setValidationErrors({});
+    setSameAsPermAddress(false);
+  };
+
+  const handleSameAsPermAddress = (checked: boolean) => {
+    setSameAsPermAddress(checked);
+    if (checked) {
+      setFormValues((prev) => ({
+        ...prev,
+        contactAddress: prev.permanentAddress || "",
+        contactAddressState: prev.permanentAddressState || "",
+        contactPincode: prev.permanentPincode || "",
+      }));
+      // Clear any validation errors on the contact fields
+      setValidationErrors((prev) => ({
+        ...prev,
+        contactAddress: "",
+        contactAddressState: "",
+        contactPincode: "",
+      }));
+    }
   };
 
   const handleInputChange = (
@@ -129,6 +154,26 @@ const AdmissionFormPage = () => {
       }));
     }
 
+    // If permanent address fields change while "same as" is enabled, sync to contact
+    if (
+      sameAsPermAddress &&
+      (name === "permanentAddress" ||
+        name === "permanentAddressState" ||
+        name === "permanentPincode")
+    ) {
+      const contactField =
+        name === "permanentAddress"
+          ? "contactAddress"
+          : name === "permanentAddressState"
+            ? "contactAddressState"
+            : "contactPincode";
+      setFormValues((prev) => ({
+        ...prev,
+        [name]: actualValue,
+        [contactField]: actualValue,
+      }));
+    }
+
     // Special handling for Religion Change
     if (name === "religion") {
       const selectedReligion = actualValue as string;
@@ -140,10 +185,7 @@ const AdmissionFormPage = () => {
           [name]: actualValue,
           caste: "Other", // Auto-select 'Other' for caste
         }));
-      } else if (
-        casteOptions?.length === 1 &&
-        casteOptions[0].value === "NA"
-      ) {
+      } else if (casteOptions?.length === 1 && casteOptions[0].value === "NA") {
         setFormValues((prev) => ({
           ...prev,
           [name]: actualValue,
@@ -157,7 +199,9 @@ const AdmissionFormPage = () => {
     const errors: { [key: string]: string } = {};
     const fields = getFieldsForProgram(selectedProgram!, selectedAdmissionType);
 
-    console.log(`Starting validation for ${selectedProgram} - ${selectedAdmissionType}`);
+    console.log(
+      `Starting validation for ${selectedProgram} - ${selectedAdmissionType}`,
+    );
     console.group("Field Validation Details");
 
     fields.forEach((field) => {
@@ -193,8 +237,23 @@ const AdmissionFormPage = () => {
       // Log the field being validated
       // console.log(`Validating ${field.name}:`, { required: field.required, value });
 
-      if (field.required && (!value || (typeof value === "string" && !value.trim()))) {
-        console.warn(`Validation Error: ${field.name} is required. Value: "${value}"`);
+      // Special case for entrance rank: required only for regular (merit) admission
+      let isRequired = field.required;
+      if (
+        field.name === "entranceRank" ||
+        field.name === "mcaEntranceRank" ||
+        field.name === "mtechEntranceRank"
+      ) {
+        isRequired = selectedAdmissionType === "regular";
+      }
+
+      if (
+        isRequired &&
+        (!value || (typeof value === "string" && !value.trim()))
+      ) {
+        console.warn(
+          `Validation Error: ${field.name} is required. Value: "${value}"`,
+        );
         errors[field.name] = field.errorMessage || `${field.label} is required`;
       }
 
@@ -202,12 +261,17 @@ const AdmissionFormPage = () => {
         const trimmedValue = value.trim();
         // DEBUG: Log the exact pattern and value being tested
         if (field.name.includes("Pincode")) {
-          console.log(`[DEBUG] Testing ${field.name}: value='${trimmedValue}', pattern='${field.pattern}'`);
+          console.log(
+            `[DEBUG] Testing ${field.name}: value='${trimmedValue}', pattern='${field.pattern}'`,
+          );
         }
 
         if (!new RegExp(field.pattern).test(trimmedValue)) {
-          console.warn(`Validation Error: ${field.name} pattern mismatch. Value: "${value}" (Trimmed: "${trimmedValue}")`);
-          errors[field.name] = field.errorMessage || `${field.label} format is invalid`;
+          console.warn(
+            `Validation Error: ${field.name} pattern mismatch. Value: "${value}" (Trimmed: "${trimmedValue}")`,
+          );
+          errors[field.name] =
+            field.errorMessage || `${field.label} format is invalid`;
         }
       }
 
@@ -224,7 +288,8 @@ const AdmissionFormPage = () => {
 
         if (age < field.minAge) {
           console.warn(`Validation Error: ${field.name} age too low (${age}).`);
-          errors[field.name] = `You must be at least ${field.minAge} years old.`;
+          errors[field.name] =
+            `You must be at least ${field.minAge} years old.`;
         }
       }
     });
@@ -233,7 +298,10 @@ const AdmissionFormPage = () => {
 
     if (Object.keys(errors).length > 0) {
       console.error("Validation Failed Keys:", Object.keys(errors));
-      console.error("Validation Failed Object:", JSON.stringify(errors, null, 2));
+      console.error(
+        "Validation Failed Object:",
+        JSON.stringify(errors, null, 2),
+      );
     } else {
       console.log("Validation Successful");
     }
@@ -259,6 +327,10 @@ const AdmissionFormPage = () => {
       return;
     }
 
+    setShowConfirmModal(true);
+  };
+
+  const processSubmit = async () => {
     setIsSubmitting(true);
     setSubmitError(null);
 
@@ -278,10 +350,11 @@ const AdmissionFormPage = () => {
       const data = await response.json();
 
       if (!response.ok) {
+        setShowConfirmModal(false);
         if (response.status === 409) {
           setSubmitError(
             data.message ||
-            "A student with this email or Aadhaar already exists.",
+            "A student with this email, phone or Aadhaar already exists.",
           );
         } else {
           setSubmitError(
@@ -291,7 +364,8 @@ const AdmissionFormPage = () => {
         return;
       }
 
-      // Success - show modal
+      // Success
+      setShowConfirmModal(false);
       setSuccessData({
         studentName: formValues.name as string,
         admissionNumber: data.admissionNumber,
@@ -300,6 +374,7 @@ const AdmissionFormPage = () => {
       setCurrentStep("success");
     } catch (error) {
       console.error("Submission error:", error);
+      setShowConfirmModal(false);
       setSubmitError(
         "An error occurred while submitting your form. Please check your connection and try again.",
       );
@@ -415,7 +490,19 @@ const AdmissionFormPage = () => {
     };
 
     return (
-      <div className="min-h-screen w-full bg-white pt-24 pb-12 font-sans text-gray-900 selection:bg-[#ccff00] selection:text-black relative">
+      <div className="min-h-screen w-full pt-24 pb-12 font-sans text-gray-900 selection:bg-[#2563eb] selection:text-white relative overflow-x-hidden">
+        {/* Dynamic Background Gradients */}
+        <div className="fixed inset-0 pointer-events-none z-0">
+          {/* Base Gradient - Light/Warm */}
+          <div className="absolute inset-0 bg-gradient-to-br from-[#fbfbf6] via-white to-[#f1f5f9]" />
+
+          {/* Transition Gradient - Blue/Azure */}
+          <motion.div
+            style={{ opacity: bgOpacity }}
+            className="absolute inset-0 bg-gradient-to-br from-[#eff6ff] via-[#dbeafe] to-[#bfdbfe]"
+          />
+        </div>
+
         {/* Noise Overlay - Very Subtle */}
         <div className="fixed inset-0 pointer-events-none z-50 opacity-[0.015] mix-blend-multiply">
           <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
@@ -510,7 +597,7 @@ const AdmissionFormPage = () => {
                     handleAdmissionTypeChange(type as AdmissionTypeType)
                   }
                   className={`px-6 py-4 rounded-xl text-sm font-medium transition-all duration-200 cursor-pointer border-2 ${selectedAdmissionType === type
-                    ? "bg-[#ccff00] border-[#ccff00] text-black shadow-lg"
+                    ? "bg-[#2563eb] border-[#2563eb] text-white shadow-lg"
                     : "bg-gray-50 border-transparent text-gray-600 hover:bg-white hover:border-gray-200 hover:text-gray-900"
                     }`}
                 >
@@ -589,6 +676,8 @@ const AdmissionFormPage = () => {
                   formValues={formValues}
                   onChange={handleInputChange}
                   validationErrors={validationErrors}
+                  sameAsPermAddress={sameAsPermAddress}
+                  onSameAsPermAddress={handleSameAsPermAddress}
                 />
               )}
 
@@ -613,6 +702,7 @@ const AdmissionFormPage = () => {
                   formValues={formValues}
                   onChange={handleInputChange}
                   validationErrors={validationErrors}
+                  admissionType={selectedAdmissionType}
                 />
               )}
 
@@ -650,7 +740,7 @@ const AdmissionFormPage = () => {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="px-10 py-4 rounded-full bg-[#ccff00] text-black font-bold text-sm hover:shadow-[0_0_20px_rgba(204,255,0,0.5)] hover:scale-105 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center justify-center gap-3 cursor-pointer"
+                  className="px-10 py-4 rounded-full bg-[#2563eb] text-white font-bold text-sm hover:shadow-[0_0_20px_rgba(37,99,235,0.5)] hover:scale-105 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center justify-center gap-3 cursor-pointer"
                 >
                   {isSubmitting ? (
                     <>
@@ -678,6 +768,16 @@ const AdmissionFormPage = () => {
             </div>
           </motion.form>
         </div>
+
+        {/* Confirmation Modal */}
+        <ConfirmSubmissionModal
+          isOpen={showConfirmModal}
+          onClose={() => setShowConfirmModal(false)}
+          onConfirm={processSubmit}
+          isSubmitting={isSubmitting}
+          studentName={formValues.name as string}
+          program={selectedProgram || ""}
+        />
       </div>
     );
   }
@@ -717,7 +817,16 @@ interface FormSectionProps {
   ) => void;
   validationErrors: { [key: string]: string };
   dynamicOptions?: { [fieldName: string]: { value: string; label: string }[] };
+  admissionType?: string;
+  sameAsPermAddress?: boolean;
+  onSameAsPermAddress?: (checked: boolean) => void;
 }
+
+const CONTACT_ADDRESS_FIELDS = [
+  "contactAddress",
+  "contactAddressState",
+  "contactPincode",
+];
 
 const FormSection: React.FC<FormSectionProps> = ({
   title,
@@ -727,6 +836,9 @@ const FormSection: React.FC<FormSectionProps> = ({
   onChange,
   validationErrors,
   dynamicOptions = {},
+  admissionType,
+  sameAsPermAddress,
+  onSameAsPermAddress,
 }) => (
   <motion.div
     className="mb-12 last:mb-0"
@@ -778,51 +890,115 @@ const FormSection: React.FC<FormSectionProps> = ({
 
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
       {fields
-        .filter((field) => {
+        .flatMap((field) => {
+          // Insert "Same as Permanent Address" toggle before the first contact address field
+          if (field.name === "contactAddress" && onSameAsPermAddress) {
+            const toggleElement = (
+              <div key="same-as-perm-toggle" className="md:col-span-2 -mb-2">
+                <button
+                  type="button"
+                  onClick={() => onSameAsPermAddress(!sameAsPermAddress)}
+                  className={`inline-flex items-center gap-2.5 px-5 py-2.5 rounded-full text-sm font-medium transition-all duration-200 cursor-pointer border-2 ${sameAsPermAddress
+                    ? "bg-[#2563eb] border-[#2563eb] text-white shadow-md"
+                    : "bg-gray-50 border-gray-200 text-gray-600 hover:bg-white hover:border-gray-300 hover:text-gray-900"
+                    }`}
+                >
+                  <span
+                    className={`flex items-center justify-center w-5 h-5 rounded-md border-2 transition-all duration-200 ${sameAsPermAddress
+                      ? "bg-black border-black"
+                      : "bg-white border-gray-300"
+                      }`}
+                  >
+                    {sameAsPermAddress && (
+                      <svg
+                        className="w-3 h-3 text-[#2563eb]"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        strokeWidth={3}
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M5 13l4 4L19 7"
+                        />
+                      </svg>
+                    )}
+                  </span>
+                  Same as Permanent Address
+                </button>
+              </div>
+            );
+            return [toggleElement, field];
+          }
+          return [field];
+        })
+        .filter((item) => {
+          // Pass through React elements (the toggle button)
+          if (React.isValidElement(item)) return true;
+          const field = item as any;
           if (!field.dependsOn) return true;
           const dependencyValue = formValues[field.dependsOn];
-          // If value is boolean true, it might be stored as true (checkbox).
-          // dependsOnValue might be "true" string or boolean.
-          // Let's assume strict equality or handling.
-          // FormValues stores checkbox as boolean.
-          if (field.dependsOnValue === undefined) return !!dependencyValue; // If depends on existence/truthiness
-
+          if (field.dependsOnValue === undefined) return !!dependencyValue;
           if (Array.isArray(field.dependsOnValue)) {
             return field.dependsOnValue.includes(dependencyValue as string);
           }
           return dependencyValue === field.dependsOnValue;
         })
-        .map((field) => (
-          <div
-            key={field.id}
-            className={field.type === "textarea" ? "md:col-span-2" : ""}
-          >
-            <FormInput
-              id={field.id}
-              name={field.name}
-              label={field.label}
-              type={field.type}
-              required={field.required}
-              placeholder={field.placeholder}
-              info={field.info}
-              minAge={field.minAge}
-              max={field.max}
-              pattern={field.pattern}
-              options={dynamicOptions[field.name] || field.options}
-              onChange={onChange}
-              value={formValues[field.name] || ""}
-              errorMessage={validationErrors[field.name] || field.errorMessage}
-              isInvalid={!!validationErrors[field.name]}
-              disabled={
-                field.name === "caste" &&
-                (formValues["religion"] === "Other" ||
-                  dropdownOptions.casteData[
-                    formValues["religion"] as string
-                  ]?.[0]?.value === "NA")
-              }
-            />
-          </div>
-        ))}
+        .map((item) => {
+          // Render the toggle element directly
+          if (React.isValidElement(item)) return item;
+
+          const field = item as any;
+
+          // Special case for entrance rank: required only for regular (merit) admission
+          let isRequired = field.required;
+          if (
+            field.name === "entranceRank" ||
+            field.name === "mcaEntranceRank" ||
+            field.name === "mtechEntranceRank"
+          ) {
+            isRequired = admissionType === "regular";
+          }
+
+          const isContactField = CONTACT_ADDRESS_FIELDS.includes(field.name);
+          const isDisabledBySameAddress = sameAsPermAddress && isContactField;
+
+          return (
+            <div
+              key={field.id}
+              className={field.type === "textarea" ? "md:col-span-2" : ""}
+            >
+              <FormInput
+                id={field.id}
+                name={field.name}
+                label={field.label}
+                type={field.type}
+                required={isRequired}
+                placeholder={field.placeholder}
+                info={field.info}
+                minAge={field.minAge}
+                max={field.max}
+                pattern={field.pattern}
+                options={dynamicOptions[field.name] || field.options}
+                onChange={onChange}
+                value={formValues[field.name] || ""}
+                errorMessage={
+                  validationErrors[field.name] || field.errorMessage
+                }
+                isInvalid={!!validationErrors[field.name]}
+                disabled={
+                  isDisabledBySameAddress ||
+                  (field.name === "caste" &&
+                    (formValues["religion"] === "Other" ||
+                      dropdownOptions.casteData[
+                        formValues["religion"] as string
+                      ]?.[0]?.value === "NA"))
+                }
+              />
+            </div>
+          );
+        })}
     </div>
   </motion.div>
 );

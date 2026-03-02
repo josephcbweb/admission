@@ -54,7 +54,7 @@ const TrackStatus = () => {
     };
 
     return (
-        <div className="min-h-screen bg-[#fbfbf6] text-[#1a1917] font-sans selection:bg-[#ccff00] selection:text-black flex flex-col">
+        <div className="min-h-screen bg-[#fbfbf6] text-[#1a1917] font-sans selection:bg-[#2563eb] selection:text-white flex flex-col">
             {/* Navbar / Back Button */}
             <nav className="p-6 md:p-8 flex justify-between items-center">
                 <Link href="/" className="flex items-center gap-2 text-sm font-medium opacity-60 hover:opacity-100 transition-opacity">
@@ -68,7 +68,7 @@ const TrackStatus = () => {
                     animate={{ opacity: 1, y: 0 }}
                     className="w-full text-center space-y-6 mb-12"
                 >
-                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#ccff00]/20 border border-[#ccff00]/50 text-[#5a7000] text-[10px] font-mono uppercase tracking-widest font-bold">
+                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#2563eb]/20 border border-[#2563eb]/50 text-[#5a7000] text-[10px] font-mono uppercase tracking-widest font-bold">
                         <span className="w-1.5 h-1.5 rounded-full bg-current animate-pulse" />
                         Live Status
                     </div>

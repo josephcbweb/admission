@@ -52,9 +52,9 @@ const HomeButton = ({
         whileTap={{ scale: 0.95 }}
         className="
           relative inline-flex items-center justify-center gap-3 px-8 py-4 
-          text-lg font-bold text-black bg-[#ccff00] rounded-full 
-          shadow-[0_0_20px_rgba(204,255,0,0.4)]
-          hover:shadow-[0_0_30px_rgba(204,255,0,0.6)]
+          text-lg font-bold text-white bg-[#2563eb] rounded-full 
+          shadow-[0_0_20px_rgba(37,99,235,0.4)]
+          hover:shadow-[0_0_30px_rgba(37,99,235,0.6)]
           transition-all duration-300
         "
       >

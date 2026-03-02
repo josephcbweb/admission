@@ -73,7 +73,7 @@ const CustomCursor = () => {
 
   return (
     <motion.div
-      className="fixed top-0 left-0 w-8 h-8 border-2 border-[#ccff00] rounded-full pointer-events-none z-[100] hidden md:block mix-blend-difference"
+      className="fixed top-0 left-0 w-8 h-8 border-2 border-[#2563eb] rounded-full pointer-events-none z-[100] hidden md:block mix-blend-difference"
       style={{ x: cursorXSpring, y: cursorYSpring }}
     />
   );
@@ -113,7 +113,7 @@ const Home = () => {
   }, []);
 
   return (
-    <div className="relative min-h-screen bg-[#fbfbf6] text-[#1a1917] selection:bg-[#ccff00] selection:text-black font-sans">
+    <div className="relative min-h-screen bg-[#fbfbf6] text-[#1a1917] selection:bg-[#2563eb] selection:text-white font-sans">
       <NoiseOverlay />
       <CustomCursor />
 
@@ -142,7 +142,7 @@ const Home = () => {
             </h1>
           </div>
           <div className="mb-4">
-            <div className="w-24 h-24 rounded-full bg-[#ccff00] flex items-center justify-center animate-spin-slow">
+            <div className="w-24 h-24 rounded-full bg-[#2563eb] flex items-center justify-center animate-spin-slow">
               <svg viewBox="0 0 100 100" className="w-full h-full p-2">
                 <path id="curve" d="M 50, 50 m -37, 0 a 37,37 0 1,1 74,0 a 37,37 0 1,1 -74,0" fill="transparent" />
                 <text className="text-[14px] font-mono font-bold uppercase tracking-widest">
@@ -167,7 +167,7 @@ const Home = () => {
             <div className="relative z-10 max-w-xl">
               <MicroLabel>The Mission</MicroLabel>
               <h2 className="text-4xl md:text-5xl font-medium leading-tight mb-6">
-                Engineering the next generation of <span className="border-b-4 border-[#ccff00]">innovators</span>.
+                Engineering the next generation of <span className="border-b-4 border-[#2563eb]">innovators</span>.
               </h2>
               <p className="text-lg opacity-70 mb-8 max-w-md">
                 Join a community where technical excellence meets creative problem solving. Your journey into the future starts here.
@@ -188,8 +188,8 @@ const Home = () => {
           {/* 2. Visual / Stats Card (Tall) */}
           <BentoCard dark className="md:col-span-3 lg:col-span-4 flex flex-col justify-between" delay={0.2}>
             <div>
-              <MicroLabel className="text-[#ccff00]">Rankings</MicroLabel>
-              <div className="text-[8rem] font-serif leading-none tracking-tighter text-[#ccff00]">
+              <MicroLabel className="text-[#2563eb]">Rankings</MicroLabel>
+              <div className="text-[8rem] font-serif leading-none tracking-tighter text-[#2563eb]">
                 {admissionStats.collegeRank}
               </div>
               <p className="text-xl opacity-80 mt-2">{admissionStats.rankDescription}</p>
@@ -199,7 +199,7 @@ const Home = () => {
               <div className="p-4 rounded-2xl bg-white/10 backdrop-blur-sm border border-white/5">
                 <div className="flex justify-between items-center mb-2">
                   <span className="text-sm font-mono opacity-60">PLACEMENTS</span>
-                  <FaBolt className="text-[#ccff00]" />
+                  <FaBolt className="text-[#2563eb]" />
                 </div>
                 <div className="text-3xl font-medium">{admissionStats.placementPercentage}</div>
               </div>
@@ -208,19 +208,21 @@ const Home = () => {
 
           {/* 3. Bottom Row Cards (Grid items) */}
           <BentoCard
-            className={`md:col-span-3 lg:col-span-4 ${isAdmissionOpen ? "bg-[#ccff00] text-black" : "bg-[#e5e5e5] text-black/60"}`}
+            className={`md:col-span-3 lg:col-span-4 ${isAdmissionOpen ? "bg-[#2563eb] text-white" : "bg-[#e5e5e5] text-black/60"}`}
             delay={0.3}
           >
             <div className="h-full flex flex-col justify-center items-center text-center">
-              <div className="font-serif text-5xl mb-2">{currentYear}</div>
-              <div className="font-mono text-sm uppercase tracking-widest border-t border-current pt-2 w-3/4 mx-auto leading-relaxed">
+              <div className="font-serif text-5xl mb-2 text-blue-900">{currentYear}</div>
+              <div className="font-mono text-sm uppercase tracking-widest border-t border-blue-900/10 pt-2 w-3/4 mx-auto leading-relaxed">
                 {isLoading ? (
-                  <div className="flex items-center justify-center gap-2 animate-pulse">
+                  <div className="flex items-center justify-center gap-2 animate-pulse text-blue-900/40">
                     <span className="w-2 h-2 bg-current rounded-full" />
                     <span>CHECKING STATUS...</span>
                   </div>
                 ) : (
-                  isAdmissionOpen ? "Applications Live" : "Admissions are taking a short nap. Check back soon!"
+                  <span className={isAdmissionOpen ? "text-blue-950 font-bold" : "text-blue-900/60"}>
+                    {isAdmissionOpen ? "Applications Live" : "Admissions are taking a short nap. Check back soon!"}
+                  </span>
                 )}
               </div>
             </div>

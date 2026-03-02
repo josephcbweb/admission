@@ -32,7 +32,7 @@ const CasteHelperModal: React.FC<CasteHelperModalProps> = ({ isOpen, onClose }) 
                             {/* Header */}
                             <div className="flex items-center justify-between p-6 border-b border-gray-100">
                                 <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 bg-black rounded-full flex items-center justify-center text-[#ccff00]">
+                                    <div className="w-10 h-10 bg-black rounded-full flex items-center justify-center text-[#2563eb]">
                                         <FiSearch size={20} />
                                     </div>
                                     <div>

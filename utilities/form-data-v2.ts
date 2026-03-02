@@ -221,11 +221,11 @@ export const parentInfoFields: FormFieldConfig[] = [
     id: 24,
     name: "parentEmail",
     type: "email",
-    label: "Parent's Email",
+    label: "Parent Email (Any One)",
     required: false,
     pattern: "^[\\w.-]+@[\\w.-]+\\.\\w{2,}$",
     errorMessage: "Enter a valid email address.",
-    info: "Email for official communications with parents/guardians.",
+    info: "Email for official communications with father, mother, or legal guardian.",
   },
   {
     id: 25,
@@ -265,7 +265,8 @@ export const addressInfoFields: FormFieldConfig[] = [
     type: "textarea",
     label: "Permanent Address",
     required: true,
-    placeholder: "Door/House Number, Street, Village, Taluk, District, PIN: 123456",
+    placeholder:
+      "Door/House Number, Street, Village, Taluk, District, PIN: 123456",
     errorMessage: "Permanent address is required.",
     info: "Your official residential address from official documents (e.g., Aadhaar, ID proof).",
   },
@@ -304,7 +305,8 @@ export const addressInfoFields: FormFieldConfig[] = [
     type: "textarea",
     label: "Contact Address",
     required: true,
-    placeholder: "Door/House Number, Street, Village, Taluk, District, PIN: 123456",
+    placeholder:
+      "Door/House Number, Street, Village, Taluk, District, PIN: 123456",
     errorMessage: "Contact address is required.",
     info: "Your current residential address. If same as permanent, you can copy it.",
   },
@@ -449,8 +451,6 @@ export const educationInfoFields: FormFieldConfig[] = [
   },
 ];
 
-
-
 // Entrance Exam Fields - B.Tech Regular
 export const entranceExamFieldsBTechRegular: FormFieldConfig[] = [
   {
@@ -480,7 +480,7 @@ export const entranceExamFieldsBTechRegular: FormFieldConfig[] = [
     name: "entranceRank",
     type: "number",
     label: "Entrance Exam Rank",
-    required: true,
+    required: false,
     pattern: "^[0-9]+$",
     errorMessage: "Rank must be numeric.",
     info: "Your rank in the entrance exam.",
@@ -500,8 +500,6 @@ export const entranceExamFieldsBTechRegular: FormFieldConfig[] = [
     admissionTypes: ["regular", "management"],
   },
 ];
-
-
 
 // Entrance Exam Fields - B.Tech NRI (Optional)
 export const entranceExamFieldsBTechNRI: FormFieldConfig[] = [
@@ -550,7 +548,7 @@ export const entranceExamFieldsBTechNRI: FormFieldConfig[] = [
     name: "entranceRank",
     type: "number",
     label: "Entrance Exam Rank",
-    required: true,
+    required: false,
     pattern: "^[0-9]+$",
     errorMessage: "Rank must be numeric.",
     info: "Your rank in the entrance exam.",
@@ -588,6 +586,26 @@ export const educationInfoFieldsMCA: FormFieldConfig[] = [
     programs: ["mca"],
   },
   {
+    id: 108,
+    name: "qualifyingSchool",
+    type: "text",
+    label: "Last Institution Attended",
+    required: true,
+    errorMessage: "Last institution name is required.",
+    info: "Name of the college where you completed your bachelor's degree.",
+    programs: ["mca"],
+  },
+  {
+    id: 109,
+    name: "qualifyingExamRegisterNo",
+    type: "text",
+    label: "Register/Roll Number",
+    required: true,
+    errorMessage: "Register number is required.",
+    info: "Your university register or roll number for the bachelor's degree.",
+    programs: ["mca"],
+  },
+  {
     id: 101,
     name: "bachelorUniversity",
     type: "text",
@@ -621,8 +639,8 @@ export const educationInfoFieldsMCA: FormFieldConfig[] = [
   },
 ];
 
-// MCA Entrance Exam Fields
-export const entranceExamFieldsMCA: FormFieldConfig[] = [
+// MCA Entrance Exam Fields - Regular
+export const entranceExamFieldsMCARegular: FormFieldConfig[] = [
   {
     id: 110,
     name: "mcaEntranceExamType",
@@ -656,6 +674,30 @@ export const entranceExamFieldsMCA: FormFieldConfig[] = [
   },
 ];
 
+// MCA Entrance Exam Fields - NRI (Optional)
+export const entranceExamFieldsMCANRI: FormFieldConfig[] = [
+  {
+    id: 175,
+    name: "hasEntranceExam",
+    type: "select",
+    label: "Have you written any Entrance Exam?",
+    required: true,
+    info: "Select 'Yes' if you have appeared for any entrance exam.",
+    programs: ["mca"],
+    admissionTypes: ["nri"],
+    options: [
+      { value: "yes", label: "Yes" },
+      { value: "no", label: "No" },
+    ],
+  },
+  ...entranceExamFieldsMCARegular.map(field => ({
+    ...field,
+    required: true,
+    dependsOn: "hasEntranceExam",
+    dependsOnValue: "yes",
+  })),
+];
+
 // M.Tech Education Fields
 export const educationInfoFieldsMTech: FormFieldConfig[] = [
   {
@@ -666,6 +708,26 @@ export const educationInfoFieldsMTech: FormFieldConfig[] = [
     required: true,
     errorMessage: "Degree is required.",
     info: "Your undergraduate degree (B.Tech, B.Sc, Diploma in Engineering).",
+    programs: ["mtech"],
+  },
+  {
+    id: 128,
+    name: "qualifyingSchool",
+    type: "text",
+    label: "Last Institution Attended",
+    required: true,
+    errorMessage: "Last institution name is required.",
+    info: "Name of the college where you completed your bachelor's degree.",
+    programs: ["mtech"],
+  },
+  {
+    id: 129,
+    name: "qualifyingExamRegisterNo",
+    type: "text",
+    label: "Register/Roll Number",
+    required: true,
+    errorMessage: "Register number is required.",
+    info: "Your university register or roll number for the bachelor's degree.",
     programs: ["mtech"],
   },
   {
@@ -711,8 +773,8 @@ export const educationInfoFieldsMTech: FormFieldConfig[] = [
   },
 ];
 
-// M.Tech Entrance Exam Fields
-export const entranceExamFieldsMTech: FormFieldConfig[] = [
+// M.Tech Entrance Exam Fields - Regular
+export const entranceExamFieldsMTechRegular: FormFieldConfig[] = [
   {
     id: 130,
     name: "mtechEntranceExamType",
@@ -744,6 +806,30 @@ export const entranceExamFieldsMTech: FormFieldConfig[] = [
     info: "Your rank/AIR in the entrance exam if applicable.",
     programs: ["mtech"],
   },
+];
+
+// M.Tech Entrance Exam Fields - NRI (Optional)
+export const entranceExamFieldsMTechNRI: FormFieldConfig[] = [
+  {
+    id: 176,
+    name: "hasEntranceExam",
+    type: "select",
+    label: "Have you written any Entrance Exam?",
+    required: true,
+    info: "Select 'Yes' if you have appeared for any entrance exam.",
+    programs: ["mtech"],
+    admissionTypes: ["nri"],
+    options: [
+      { value: "yes", label: "Yes" },
+      { value: "no", label: "No" },
+    ],
+  },
+  ...entranceExamFieldsMTechRegular.map(field => ({
+    ...field,
+    required: true,
+    dependsOn: "hasEntranceExam",
+    dependsOnValue: "yes",
+  })),
 ];
 
 // Bank Information Fields
@@ -889,6 +975,7 @@ export const educationInfoFieldsCommon: FormFieldConfig[] = [
     required: true,
     errorMessage: "Institution name is required.",
     info: "Name of the school or college where you completed the qualifying exam.",
+    admissionTypes: ["regular", "nri", "management"],
   },
 ];
 
@@ -1070,7 +1157,7 @@ export const additionalInfoFields: FormFieldConfig[] = [
     label: "Any other information",
     required: false,
     info: "Any medical conditions, achievements or other details you want to share.",
-    placeholder: "Medical history, extra-curricular achievements, etc."
+    placeholder: "Medical history, extra-curricular achievements, etc.",
   },
 ];
 
@@ -1080,6 +1167,16 @@ export const getFieldsForProgram = (
   admissionType: "regular" | "lateral" | "nri" | "management" = "regular",
 ) => {
   const fields: FormFieldConfig[] = [];
+  const programKey = program.toLowerCase() as "btech" | "mca" | "mtech";
+
+  // Helper to filter fields by program and admissionType metadata
+  const filterByContext = (fieldList: FormFieldConfig[]) =>
+    fieldList.filter((f) => {
+      if (f.programs && !f.programs.includes(programKey)) return false;
+      if (f.admissionTypes && !f.admissionTypes.includes(admissionType))
+        return false;
+      return true;
+    });
 
   // Always include personal info
   fields.push(...personalInfoFields);
@@ -1088,32 +1185,40 @@ export const getFieldsForProgram = (
 
   if (program === "BTECH") {
     if (admissionType === "lateral") {
-      fields.push(...educationInfoFieldsCommon);
+      fields.push(...filterByContext(educationInfoFieldsCommon));
       fields.push(...educationInfoFieldsBTechLateral);
       fields.push(...tcFields);
     } else if (admissionType === "regular") {
-      fields.push(...educationInfoFieldsCommon);
+      fields.push(...filterByContext(educationInfoFieldsCommon));
       fields.push(...educationInfoFieldsBTechRegular);
       fields.push(...entranceExamFieldsBTechRegular);
       fields.push(...tcFields);
     } else if (admissionType === "management") {
-      fields.push(...educationInfoFieldsCommon);
+      fields.push(...filterByContext(educationInfoFieldsCommon));
       fields.push(...educationInfoFieldsBTechRegular);
       fields.push(...entranceExamFieldsBTechRegular);
       fields.push(...tcFields);
     } else if (admissionType === "nri") {
-      fields.push(...educationInfoFieldsCommon);
+      fields.push(...filterByContext(educationInfoFieldsCommon));
       fields.push(...educationInfoFieldsBTechRegular);
       fields.push(...entranceExamFieldsBTechNRI);
       fields.push(...tcFields);
     }
   } else if (program === "MCA") {
     fields.push(...educationInfoFieldsMCA);
-    fields.push(...entranceExamFieldsMCA);
+    if (admissionType === "nri") {
+      fields.push(...entranceExamFieldsMCANRI);
+    } else {
+      fields.push(...entranceExamFieldsMCARegular);
+    }
     fields.push(...tcFields);
   } else if (program === "MTECH") {
     fields.push(...educationInfoFieldsMTech);
-    fields.push(...entranceExamFieldsMTech);
+    if (admissionType === "nri") {
+      fields.push(...entranceExamFieldsMTechNRI);
+    } else {
+      fields.push(...entranceExamFieldsMTechRegular);
+    }
     fields.push(...tcFields);
   }
 
@@ -1193,18 +1298,10 @@ export const dropdownOptions = {
       { value: "Jamaat-e-Islami", label: "Jamaat-e-Islami" },
       { value: "General", label: "General/Other" },
     ],
-    Sikh: [
-      { value: "NA", label: "Not Applicable" },
-    ],
-    Jain: [
-      { value: "NA", label: "Not Applicable" },
-    ],
-    Buddhist: [
-      { value: "NA", label: "Not Applicable" },
-    ],
-    Other: [
-      { value: "Other", label: "Other" },
-    ],
+    Sikh: [{ value: "NA", label: "Not Applicable" }],
+    Jain: [{ value: "NA", label: "Not Applicable" }],
+    Buddhist: [{ value: "NA", label: "Not Applicable" }],
+    Other: [{ value: "Other", label: "Other" }],
   } as Record<string, { value: string; label: string }[]>,
 
   program: [

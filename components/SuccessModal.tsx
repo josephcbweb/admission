@@ -75,8 +75,8 @@ const SuccessModal: React.FC<SuccessModalProps> = ({
                     transition={{ delay: 0.2, type: "spring", bounce: 0.5 }}
                     className="mb-6"
                   >
-                    <div className="w-20 h-20 bg-[#ccff00] rounded-full flex items-center justify-center shadow-[0_0_30px_rgba(204,255,0,0.3)]">
-                      <FiCheckCircle className="text-black" size={44} />
+                    <div className="w-20 h-20 bg-[#2563eb] rounded-full flex items-center justify-center shadow-[0_0_30px_rgba(37,99,235,0.3)]">
+                      <FiCheckCircle className="text-white" size={44} />
                     </div>
                   </motion.div>
 
@@ -113,7 +113,7 @@ const SuccessModal: React.FC<SuccessModalProps> = ({
                   >
                     <div className="flex items-start gap-4">
                       <div className="w-10 h-10 bg-gray-900 rounded-xl flex items-center justify-center flex-shrink-0">
-                        <FiUser className="text-[#ccff00]" size={20} />
+                        <FiUser className="text-[#2563eb]" size={20} />
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-[10px] font-mono font-bold text-gray-500 uppercase tracking-widest mb-1">
@@ -135,7 +135,7 @@ const SuccessModal: React.FC<SuccessModalProps> = ({
                   >
                     <div className="flex items-start gap-4">
                       <div className="w-10 h-10 bg-gray-900 rounded-xl flex items-center justify-center flex-shrink-0">
-                        <FiBook className="text-[#ccff00]" size={20} />
+                        <FiBook className="text-[#2563eb]" size={20} />
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-[10px] font-mono font-bold text-gray-500 uppercase tracking-widest mb-1">
@@ -162,15 +162,15 @@ const SuccessModal: React.FC<SuccessModalProps> = ({
                       <FiHash size={120} className="text-white transform rotate-12 translate-x-4 -translate-y-4" />
                     </div>
                     <div className="flex items-center gap-6 relative z-10">
-                      <div className="w-14 h-14 bg-[#ccff00] rounded-2xl flex items-center justify-center flex-shrink-0 shadow-[0_0_20px_rgba(204,255,0,0.2)]">
-                        <FiHash className="text-black" size={28} />
+                      <div className="w-14 h-14 bg-[#2563eb] rounded-2xl flex items-center justify-center flex-shrink-0 shadow-[0_0_20px_rgba(37,99,235,0.2)]">
+                        <FiHash className="text-white" size={28} />
                       </div>
                       <div className="flex-1">
                         <p className="text-[10px] font-mono font-bold text-white/50 uppercase tracking-widest mb-2">
                           Your Admission Number
                         </p>
                         <div className="inline-block bg-white/10 backdrop-blur-md rounded-xl px-6 py-2 border border-white/10">
-                          <p className="text-3xl font-mono font-bold text-[#ccff00] tracking-wider">
+                          <p className="text-3xl font-mono font-bold text-[#2563eb] tracking-wider">
                             {admissionNumber}
                           </p>
                         </div>
@@ -188,7 +188,7 @@ const SuccessModal: React.FC<SuccessModalProps> = ({
                 >
                   <div className="flex gap-4">
                     <div className="flex-shrink-0">
-                      <div className="w-6 h-6 bg-black rounded-full flex items-center justify-center text-[#ccff00]">
+                      <div className="w-6 h-6 bg-black rounded-full flex items-center justify-center text-[#2563eb]">
                         <span className="text-xs font-bold">!</span>
                       </div>
                     </div>
@@ -230,7 +230,7 @@ const SuccessModal: React.FC<SuccessModalProps> = ({
                   <button
                     onClick={onDownload}
                     data-download-button
-                    className="flex items-center justify-center gap-2 bg-[#ccff00] hover:bg-[#bbe600] text-black px-6 py-4 rounded-full font-bold transition-all duration-300 shadow-[0_4px_14px_0_rgba(204,255,0,0.39)] hover:shadow-[0_6px_20px_rgba(204,255,0,0.23)] cursor-pointer"
+                    className="flex items-center justify-center gap-2 bg-[#2563eb] hover:bg-[#1d4ed8] text-white px-6 py-4 rounded-full font-bold transition-all duration-300 shadow-[0_4px_14px_0_rgba(37,99,235,0.39)] hover:shadow-[0_6px_20px_rgba(37,99,235,0.23)] cursor-pointer"
                   >
                     <FiDownload size={20} />
                     <span>Download</span>
